@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { config } from '../config'
 import DataRow from './DataRow.vue'
 import AuthDialog from './AuthDialog.vue'
@@ -205,6 +205,50 @@ function toggleSection(section: string) {
   }
 }
 
+const inputSort = ref({ key: 'uri', asc: true })
+const outputSort = ref({ key: 'uri', asc: true })
+
+const sortedInputs = computed(() => {
+  if (!inputs.value || inputs.value.length === 0) return []
+  
+  return [...inputs.value].sort((a, b) => {
+    if (inputSort.value.asc) {
+      return a.uri.localeCompare(b.uri)
+    } else {
+      return b.uri.localeCompare(a.uri)
+    }
+  })
+})
+
+const sortedOutputs = computed(() => {
+  if (!outputs.value || outputs.value.length === 0) return []
+  
+  return [...outputs.value].sort((a, b) => {
+    if (outputSort.value.asc) {
+      return a.uri.localeCompare(b.uri)
+    } else {
+      return b.uri.localeCompare(a.uri)
+    }
+  })
+})
+
+function sortInputs(key: string) {
+  if (inputSort.value.key === key) {
+    inputSort.value.asc = !inputSort.value.asc
+  } else {
+    inputSort.value.key = key
+    inputSort.value.asc = true
+  }
+}
+
+function sortOutputs(key: string) {
+  if (outputSort.value.key === key) {
+    outputSort.value.asc = !outputSort.value.asc
+  } else {
+    outputSort.value.key = key
+    outputSort.value.asc = true
+  }
+}
 </script>
 
 <template>
@@ -237,7 +281,7 @@ function toggleSection(section: string) {
             <DataRow
               v-for="(name, index) in displayItems"
               :key="index"
-              :name="name === 'summary.code.name' ? 'Code Name': name === 'summary.simulation.description' ? 'Description' : name === 'ids' ? 'IDSs' : name === 'summary.ids_properties.creation_date' ? 'Creation Date' :name"
+              :name="name === 'summary.code.name' ? 'Code Name': name === 'summary.description' ? 'Description' : name === 'ids' ? 'IDSs' : name === 'summary.ids_properties.creation_date' ? 'Creation Date' :name"
               :value="getValue(name)"
               :index="index"
               :data="items"
@@ -271,14 +315,17 @@ function toggleSection(section: string) {
         <v-table v-if="showInputs">
           <thead>
             <tr>
-              <th class="pl-1">URI</th>
-              <!-- <th class="pl-2">Creation Time</th> -->
+              <th class="pl-1 sortable" @click="sortInputs('uri')">
+                URI
+                <v-icon v-if="inputSort.key === 'uri'">
+                  {{ inputSort.asc ? 'mdi-arrow-up' : 'mdi-arrow-down' }}
+                </v-icon>
+              </th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="input in inputs" :key="input.uuid.hex">
+            <tr v-for="input in sortedInputs" :key="input.uuid.hex">
               <td>{{ input.uri }}</td>
-              <!-- <td>{{ new Date(input.datetime).toUTCString() }}</td> -->
             </tr>
             <tr v-if="inputs.length === 0">
               <td>No input data</td>
@@ -301,14 +348,17 @@ function toggleSection(section: string) {
         <v-table v-if="showOutputs">
           <thead>
             <tr>
-              <th class="pl-1">URI</th>
-              <!-- <th class="pl-2">Creation Time</th> -->
+              <th class="pl-1 sortable" @click="sortOutputs('uri')">
+                URI
+                <v-icon v-if="outputSort.key === 'uri'">
+                  {{ outputSort.asc ? 'mdi-arrow-up' : 'mdi-arrow-down' }}
+                </v-icon>
+              </th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="output in outputs" :key="output.uuid.hex">
+            <tr v-for="output in sortedOutputs" :key="output.uuid.hex">
               <td>{{ output.uri }}</td>
-              <!-- <td>{{ new Date(output.datetime).toUTCString() }}</td> -->
             </tr>
             <tr v-if="outputs.length === 0">
               <td>No output data</td>

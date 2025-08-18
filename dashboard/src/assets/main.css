@@ -35,3 +35,11 @@ div.v-table td {
 .scroll {
   overflow-y: scroll;
 }
+
+.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+.sortable:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
