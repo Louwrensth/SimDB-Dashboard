@@ -281,7 +281,7 @@ function sortOutputs(key: string) {
             <DataRow
               v-for="(name, index) in displayItems"
               :key="index"
-              :name="name === 'summary.code.name' ? 'Code Name': name === 'summary.description' ? 'Description' : name === 'ids' ? 'IDSs' : name === 'summary.ids_properties.creation_date' ? 'Creation Date' :name"
+              :name="name"
               :value="getValue(name)"
               :index="index"
               :data="items"
