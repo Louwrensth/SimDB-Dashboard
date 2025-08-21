@@ -18,9 +18,10 @@ const config: Readonly<{ [key: string]: any }> = {
     'uploaded_by'
   ],
   displayHeaders: [
-    { label: 'Server', value: 'server' },
     { label: 'Simulation', value: 'uuid' },
+    { label: 'Server', value: 'server' },
     { label: 'Alias', value: 'alias' },
+    { label: 'Upload Info', value: 'upload_info' },
   ],
   // displayFields: 'all',
   displayFields: [    
@@ -28,7 +29,6 @@ const config: Readonly<{ [key: string]: any }> = {
     'ids',
     'summary.description',
     'status',
-    'uploaded_by',
     'summary.ids_properties.creation_date'
   ],
   prefix: 'dashboard',

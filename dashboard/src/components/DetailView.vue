@@ -23,6 +23,8 @@ const outputs = ref<File[]>([])
 const inputs = ref<File[]>([])
 const parents = ref<Item[]>([])
 const children = ref<Item[]>([])
+const uploadDate = ref('')
+const uploadInfo = ref('')
 const token = ref('')
 const authentication = ref('')
 
@@ -90,12 +92,14 @@ function getValue(name: string) {
     return alias.value
   } else if (name === 'uuid') {
     return uuid.value?.hex
+  } else if (name === 'upload_info') {
+    uploadInfo.value = items.value.find((el: any) => el.element.toLowerCase() === 'uploaded_by') ?.value || 'unknown'
+    return uploadInfo.value + ', ' + new Date(uploadDate.value).toUTCString()
   } else {
-    // removed .toLowerCase() to avoid case sensitivity
     let found: any = items.value
-      ? items.value.find((el: any) => el.element === name)
+      ? items.value.find((el: any) => el.element.toLowerCase() === name)
       : false
-    return found ? name==='creation_date'? new Date(found.value).toUTCString() : found.value : null
+    return found ? found.value : null
   }
 }
 
@@ -138,6 +142,7 @@ function setItems(username: string, password: string) {
       inputs.value = data.inputs
       parents.value = data.parents
       children.value = data.children
+      uploadDate.value = data.datetime
       if (showAllFields.value) {
         displayItems.value = data.metadata.map((el: any) => el.element)
       }
@@ -259,11 +264,20 @@ function sortOutputs(key: string) {
     @error="dialog = false"
   ></AuthDialog>
 
-  <v-container fluid class="pa-10">
-    <v-row v-for="item in displayHeaders" :key="item.label" dense>
-      <v-col cols="2" class="text-h5">{{ item.label }}</v-col>
-      <v-col cols="10" class="text-h5">{{ getValue(item.value) }}</v-col>
+  <v-container fluid class="pa-1">
+    <v-row>
+      <v-col cols="1" class="text-h5">{{ displayHeaders[0].label }}</v-col>
+      <v-col cols="4" class="text-h5">{{ getValue(displayHeaders[0].value) }}</v-col>
+      <v-col cols="1" class="text-h5">{{ displayHeaders[1].label }}</v-col>
+      <v-col cols="5" class="text-h5">{{ getValue(displayHeaders[1].value) }}</v-col>
     </v-row>
+    <v-row>
+      <v-col cols="1" class="text-h5">{{ displayHeaders[2].label }}</v-col>
+      <v-col cols="4" class="text-h5">{{ getValue(displayHeaders[2].value) }}</v-col>
+      <v-col cols="1" class="text-h5">{{ displayHeaders[3].label }}</v-col>
+      <v-col cols="5" class="text-h5">{{ getValue(displayHeaders[3].value) }}</v-col>
+    </v-row>
+
     <v-row>
       <v-divider></v-divider>
     </v-row>
@@ -281,7 +295,7 @@ function sortOutputs(key: string) {
             <DataRow
               v-for="(name, index) in displayItems"
               :key="index"
-              :name="name"
+              :name="name === 'summary.code.name' ? 'code name': name === 'summary.description' ? 'description' : name === 'summary.ids_properties.creation_date' ? 'creation date' : name === 'uploaded_by' ? 'uploaded by' : name"
               :value="getValue(name)"
               :index="index"
               :data="items"
