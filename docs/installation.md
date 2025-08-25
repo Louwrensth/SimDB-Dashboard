@@ -2,8 +2,8 @@
 
 ## Installing the dashboard
 
-1. Check out the dashboard: `git clone ssh://git@git.iter.org/imex/simdb-dashboard.git`.
-2. Change to the `dashboard` directory: `cd dashboard`
+1. Check out the dashboard: `git clone git@github.com:iterorganization/SimDB-Dashboard.git`.
+2. Change to the `dashboard` directory: `cd SimDB-Dashboard/dashboard`
 3. Install the node dependencies: `npm install`
 4. Build the dashboard: `npm run build`
 5. As root install the dashboard: `cp -r dist/* /www-data/dashboard` (the location to install the files to will depend on which user is being used to serve them using nginx -- see below).
