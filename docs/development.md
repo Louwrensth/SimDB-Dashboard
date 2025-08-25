@@ -13,8 +13,8 @@ The dashboard consists mostly of static pages and javascript files, with Flask b
 You can clone the code using git and run a development version of the dashboard using:
 
 ```bash
-git clone ssh://git@git.iter.org/imex/simdb-dashboard.git
-cd dashboard
+git clone git@github.com:iterorganization/SimDB-Dashboard.git
+cd SimDB-Dashboard/dashboard
 npm install
 npm run dev
 ```
