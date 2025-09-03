@@ -18,7 +18,7 @@ const searchFields = ref<SearchEntry[]>(
   config.searchFields.map((el: any) => {
     return {
       name: el,
-      display: el.includes('alias') ? 'alias': el.includes('name') ? 'code name': el.includes('summary.description') ? 'description' : el.includes('power_additional') ? 'power_additional' : el.includes('global_quantities.ip') ? 'ip': el.includes('global_quantities.b0') ? 'b0' :el.toLabel(),
+      display: el.includes('alias') ? 'alias': el.includes('name') ? 'code name': el.includes('description') ? 'description' : el.includes('power_additional') ? 'power_additional' : el.includes('global_quantities.ip') ? 'ip': el.includes('global_quantities.b0') ? 'b0' :el.toLabel(),
       value: null,
       comparator: 'eq',
       hover: false,
@@ -78,11 +78,11 @@ const helpText = function (item: string) {
 const quantitiesName = function (item: string) {
   const name: { [key: string]: string } = {
     'alias': 'Simulation Alias',
-    'code name': 'summary.code.name',
-    'description': 'summary.description',
-    'power_additional': 'summary.heating_current_drive.power_additional',
-    'ip': 'summary.global_quantities.ip',
-    'b0': 'summary.global_quantities.b0',
+    'code name': 'code.name',
+    'description': 'description',
+    'power_additional': 'heating_current_drive.power_additional',
+    'ip': 'global_quantities.ip',
+    'b0': 'global_quantities.b0',
   }
   return name[item]
 }
@@ -163,7 +163,7 @@ function setItems() {
   const url = config.rootAPI(decodeURIComponent(selectedServer.value))
   for (let i = 0; i < searchFields.value.length; i++) {
     let name = searchFields.value[i].name
-    if (name === 'summary.description' || name === 'summary.heating_current_drive.power_additional.value' || name === 'summary.global_quantities.ip.value' || name === 'summary.global_quantities.b0.value') {
+    if (name === 'description' || name === 'heating_current_drive.power_additional.value' || name === 'global_quantities.ip.value' || name === 'global_quantities.b0.value') {
       itemsFor.value[name] = []
     }
     else{

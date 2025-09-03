@@ -191,7 +191,7 @@ function setItems(username: string, password: string) {
               :simulations="simulations"
               :uuids="uuids"
               :index="index"
-              :name_label="name === 'summary.code.name' ? 'Code Name': name === 'summary.description' ? 'Description' : name === 'ids' ? 'IDSs' : name === 'summary.ids_properties.creation_date' ? 'Creation Date' :name"
+              :name_label="name === 'code.name' ? 'Code Name': name === 'description' ? 'Description' : name === 'ids' ? 'IDSs' : name === 'ids_properties.creation_date' ? 'Creation Date' :name"
             >
             </CompareRow>
             <ComparePlot

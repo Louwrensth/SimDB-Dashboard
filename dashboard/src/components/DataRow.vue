@@ -66,7 +66,7 @@ function isArray() {
     typeof props.value !== 'string' &&
     typeof props.value !== 'number' &&
     props.value._type === 'numpy.ndarray' &&
-    props.name !== 'summary.time'
+    props.name !== 'time'
   )
 }
 
