@@ -90,7 +90,7 @@ function getHex(value: number | string | NumpyValue | UUIDValue | undefined): st
 
 <template>
   <tr>
-    <td style="min-width: 25em">{{ truncateSummary(name) }}</td>
+    <td style="min-width: 25em">{{ name }}</td>
     <td style="min-width: 35em">
       <v-container style="width: 70%;white-space: nowrap;
         overflow: hidden;

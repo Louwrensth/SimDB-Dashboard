@@ -11,9 +11,9 @@ const config: Readonly<{ [key: string]: any }> = {
     //'https://simdb.iter.org/itpa/api': { 'requiresAuth': false },
   },
   defaultServer: 'https://simdb.iter.org/scenarios/api',
-  searchFields: ['alias', 'summary.code.name', 'summary.global_quantities.ip.value', 'summary.global_quantities.b0.value', 'summary.heating_current_drive.power_additional.value', 'summary.description'],
+  searchFields: ['alias', 'code.name', 'global_quantities.ip.value', 'global_quantities.b0.value', 'heating_current_drive.power_additional.value', 'description'],
   searchOutputFields: [
-    'summary.code.name',
+    'code.name',
     'status',
     'uploaded_by'
   ],
@@ -25,11 +25,11 @@ const config: Readonly<{ [key: string]: any }> = {
   ],
   // displayFields: 'all',
   displayFields: [    
-    'summary.code.name',
+    'code.name',
     'ids',
-    'summary.description',
+    'description',
     'status',
-    'summary.ids_properties.creation_date'
+    'ids_properties.creation_date'
   ],
   prefix: 'dashboard',
   searchOutputColumns: ['alias/UUID', 'status', 'Upload Date'],

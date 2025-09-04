@@ -84,7 +84,7 @@ function isShortString(uuid: string, name: string) {
 
 <template>
   <tr v-if="!isArray(name)">
-    <td style="min-width: 20em">{{ truncateSummary(name_label) }}</td>
+    <td style="min-width: 20em">{{ name_label }}</td>
     <td v-for="uuid in uuids" v-bind:key="uuid">
       <v-container class="ml-0">
         <template v-if="isXML(uuid, name)">

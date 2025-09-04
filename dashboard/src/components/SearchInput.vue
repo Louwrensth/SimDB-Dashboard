@@ -183,7 +183,7 @@ function setItems() {
     .then((response) => response.json())
     .then((data) => {
       items.value = data.map((el: any) => {
-        return { value: el.name, text: truncateSummary(el.name) }
+        return { value: el.name, text: el.name }
       })
       isLoading.value = false
     })
