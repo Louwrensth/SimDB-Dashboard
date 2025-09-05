@@ -97,7 +97,7 @@ function getValue(name: string) {
     return uploadInfo.value + ', ' + new Date(uploadDate.value).toUTCString()
   } else {
     let found: any = items.value
-      ? items.value.find((el: any) => el.element.toLowerCase() === name)
+      ? items.value.find((el: any) => el.element === name)
       : false
     return found ? found.value : null
   }
@@ -210,8 +210,8 @@ function toggleSection(section: string) {
   }
 }
 
-const inputSort = ref({ key: 'uri', asc: true })
-const outputSort = ref({ key: 'uri', asc: true })
+const inputSort = ref({ key: 'uri', asc: false })
+const outputSort = ref({ key: 'uri', asc: false })
 
 const sortedInputs = computed(() => {
   if (!inputs.value || inputs.value.length === 0) return []
@@ -264,26 +264,17 @@ function sortOutputs(key: string) {
     @error="dialog = false"
   ></AuthDialog>
 
-  <v-container fluid class="pa-1">
-    <v-row>
-      <v-col cols="1" class="text-h5">{{ displayHeaders[0].label }}</v-col>
-      <v-col cols="4" class="text-h5">{{ getValue(displayHeaders[0].value) }}</v-col>
-      <v-col cols="1" class="text-h5">{{ displayHeaders[1].label }}</v-col>
-      <v-col cols="5" class="text-h5">{{ getValue(displayHeaders[1].value) }}</v-col>
+  <v-container fluid class="pa-5">
+    <v-row v-for="item in displayHeaders" :key="item.label" dense>
+      <v-col cols="2" class="text-h7">{{ item.label }}</v-col>
+      <v-col cols="10" class="text-h7">{{ getValue(item.value) }}</v-col>
     </v-row>
-    <v-row>
-      <v-col cols="1" class="text-h5">{{ displayHeaders[2].label }}</v-col>
-      <v-col cols="4" class="text-h5">{{ getValue(displayHeaders[2].value) }}</v-col>
-      <v-col cols="1" class="text-h5">{{ displayHeaders[3].label }}</v-col>
-      <v-col cols="5" class="text-h5">{{ getValue(displayHeaders[3].value) }}</v-col>
-    </v-row>
-
     <v-row>
       <v-divider></v-divider>
     </v-row>
     <v-row>
       <v-col>
-        <span class="text-h5">Metadata</span>
+        <span class="text-h7">Metadata</span>
         <v-table>
           <thead>
             <tr>
@@ -319,8 +310,14 @@ function sortOutputs(key: string) {
     <v-row>
       <v-col>
         <div class="d-flex align-center justify-space-between">
-          <span class="text-h5">Inputs</span>
-          <v-list-item v-if="outputs.length > 0">
+          <span
+            class="text-h5 clickable-header"
+            @click="toggleSection('inputs')"
+            style="cursor: pointer;"
+          >
+            Inputs
+          </span>
+          <v-list-item v-if="inputs.length > 0">
             <v-btn icon @click="toggleSection('inputs')" style="box-shadow: none;">
               <v-icon>{{ showInputs ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
             </v-btn>
@@ -352,7 +349,13 @@ function sortOutputs(key: string) {
     <v-row>
       <v-col>
         <div class="d-flex align-center justify-space-between">
-          <span class="text-h5">Outputs</span>
+          <span
+          class="text-h5 clickable-header"
+          @click="toggleSection('outputs')"
+          style="cursor: pointer;"
+          >
+            Outputs
+          </span>
           <v-list-item v-if="outputs.length > 0">
             <v-btn icon @click="toggleSection('outputs')" style="box-shadow: none;">
               <v-icon>{{ showOutputs ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
@@ -386,7 +389,13 @@ function sortOutputs(key: string) {
     <v-row>
       <v-col>
         <div class="d-flex align-center justify-space-between">
-          <span class="text-h5" >Related Simulations</span>
+          <span
+            class="text-h5 clickable-header"
+            @click="toggleSection('relatedsim')"
+            style="cursor: pointer;"
+          >
+            Related Simulations
+          </span>
           <v-list-item>
             <v-btn icon @click="toggleSection('relatedsim')" style="box-shadow: none;">
               <v-icon>{{ showRelatedSim ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
@@ -399,7 +408,15 @@ function sortOutputs(key: string) {
               <v-tooltip top>
                 <template v-slot:activator="{ props }">
                   <div class="d-flex align-center justify-space-between" style="margin-left: 10px;">
-                    <span class="text-h6" v-bind="props">Parents<v-icon size="20">{{'mdi-information-variant'}}</v-icon></span>
+                    <span
+                      v-bind="props"
+                      class="text-h6 clickable-header"
+                      @click="toggleSection('parents')"
+                      style="cursor: pointer;"
+                    >
+                      Parents
+                      <v-icon size="20">{{'mdi-information-variant'}}</v-icon>
+                    </span>
                     <v-list-item v-if="parents.length > 0">
                       <v-btn icon @click="toggleSection('parents')" style="box-shadow: none;">
                         <v-icon>{{ showParents ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
@@ -426,7 +443,15 @@ function sortOutputs(key: string) {
               <v-tooltip top>
                 <template v-slot:activator="{ props }">
                   <div class="d-flex align-center justify-space-between" style="margin-left: 10px;">
-                    <span class="text-h6" v-bind="props">Children<v-icon size="20">{{'mdi-information-variant'}}</v-icon></span>
+                    <span
+                    v-bind="props"
+                      class="text-h6 clickable-header"
+                      @click="toggleSection('children')"
+                      style="cursor: pointer;"
+                    >
+                      Children
+                      <v-icon size="20">{{'mdi-information-variant'}}</v-icon>
+                    </span>
                     <v-list-item v-if="children.length > 0">
                       <v-btn icon @click="toggleSection('children')" style="box-shadow: none;">
                         <v-icon>{{ showChildren ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>

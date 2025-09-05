@@ -110,7 +110,7 @@ function getValue(name: string) {
     return server.value
   } else {
     let found: any = items.value
-      ? items.value.find((el: any) => el.element.toLowerCase() === name)
+      ? items.value.find((el: any) => el.element === name)
       : false
     return found ? found.value : null
   }
@@ -160,9 +160,9 @@ function setItems(username: string, password: string) {
   <AuthDialog :server="server" :show="dialog" @ok="setItems" @error="dialog = false"></AuthDialog>
 
   <v-container fluid>
-    <v-row dense style="min-height: 5em">
-      <v-col cols="2" class="text-h5">Server</v-col>
-      <v-col cols="10" class="text-h5">{{ server }}</v-col>
+    <v-row dense style="min-height: 1em">
+      <v-col cols="2" class="text-h7">Server</v-col>
+      <v-col cols="10" class="text-h7">{{ server }}</v-col>
     </v-row>
     <v-row>
       <v-divider></v-divider>
