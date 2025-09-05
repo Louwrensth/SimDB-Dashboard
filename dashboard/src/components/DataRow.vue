@@ -39,7 +39,7 @@ function getXData() {
 }
 
 function processValue(value: any) {
-  if (!value) {
+  if (value !== 0 && !value) {
     return 'No data available.'
   }
   if (value.hasOwnProperty('_type') && value._type === 'numpy.ndarray') {
@@ -118,7 +118,7 @@ function getHex(value: number | string | NumpyValue | UUIDValue | undefined): st
             processValue(value)
           }}</a>
         </template>
-        <template v-else-if="value">
+        <template v-else-if="value !== null && value !== undefined">
           <span style="white-space: pre-wrap">
             {{ processValue(value) }}
           </span>
