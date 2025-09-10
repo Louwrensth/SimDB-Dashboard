@@ -269,12 +269,6 @@ function sortOutputs(key: string) {
       <v-col cols="2" class="text-h7">{{ item.label }}</v-col>
       <v-col cols="10" class="text-h7">{{ getValue(item.value) }}</v-col>
     </v-row>
-    <v-row>
-      <v-col cols="1" class="text-h5">{{ displayHeaders[2].label }}</v-col>
-      <v-col cols="4" class="text-h5">{{ getValue(displayHeaders[2].value) }}</v-col>
-      <v-col cols="1" class="text-h5">{{ displayHeaders[3].label }}</v-col>
-      <v-col cols="5" class="text-h5">{{ getValue(displayHeaders[3].value) }}</v-col>
-    </v-row>
 
     <v-row>
       <v-divider></v-divider>

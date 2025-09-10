@@ -18,8 +18,8 @@ const config: Readonly<{ [key: string]: any }> = {
     'uploaded_by'
   ],
   displayHeaders: [
-    { label: 'Simulation', value: 'uuid' },
     { label: 'Server', value: 'server' },
+    { label: 'Simulation', value: 'uuid' },
     { label: 'Alias', value: 'alias' },
     { label: 'Upload Info', value: 'upload_info' },
   ],
