@@ -34,7 +34,7 @@ function setOptions() {
     .then((response) => response.json())
     .then((data) => {
       items.value = data.map((el: { name: string }) => {
-        return { value: el.name, title: truncateSummary(el.name) }
+        return { value: el.name, title: el.name }
       })
     })
     .catch(function (error) {

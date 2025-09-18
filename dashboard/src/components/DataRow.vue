@@ -39,7 +39,7 @@ function getXData() {
 }
 
 function processValue(value: any) {
-  if (!value) {
+  if (value !== 0 && !value) {
     return 'No data available.'
   }
   if (value.hasOwnProperty('_type') && value._type === 'numpy.ndarray') {
@@ -66,7 +66,7 @@ function isArray() {
     typeof props.value !== 'string' &&
     typeof props.value !== 'number' &&
     props.value._type === 'numpy.ndarray' &&
-    props.name !== 'summary.time'
+    props.name !== 'time'
   )
 }
 
@@ -90,7 +90,7 @@ function getHex(value: number | string | NumpyValue | UUIDValue | undefined): st
 
 <template>
   <tr>
-    <td style="min-width: 25em">{{ truncateSummary(name) }}</td>
+    <td style="min-width: 25em">{{ name }}</td>
     <td style="min-width: 35em">
       <v-container style="width: 70%;white-space: nowrap;
         overflow: hidden;
@@ -118,7 +118,7 @@ function getHex(value: number | string | NumpyValue | UUIDValue | undefined): st
             processValue(value)
           }}</a>
         </template>
-        <template v-else-if="value">
+        <template v-else-if="value !== null && value !== undefined">
           <span style="white-space: pre-wrap">
             {{ processValue(value) }}
           </span>
