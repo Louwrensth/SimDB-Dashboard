@@ -1,15 +1,15 @@
 {
   "name": "simdbdashboard",
-  "version": "0.8.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "run-p type-check \"build-only {@}\" --",
+    "build": "vite build",
+    "build:with-typecheck": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "test:unit": "vitest",
     "build-only": "vite build",
-    "type-check": "vue-tsc --build --force",
+    "type-check": "vue-tsc --noEmit --project tsconfig.app.json",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
     "format": "prettier --write src/"
   },

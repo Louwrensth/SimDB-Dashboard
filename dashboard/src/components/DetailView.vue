@@ -113,6 +113,12 @@ function removeRow() {
   displayItems.value.pop()
 }
 
+function removeSelectedRow(index: number) {
+  if (index >= 0 && index < displayItems.value.length) {
+    displayItems.value.splice(index, 1)
+  }
+}
+
 function resetRows() {
   displayItems.value = showAllFields.value ? [] : [...config.displayFields]
 }
@@ -315,6 +321,8 @@ function sortOutputs(key: string) {
               :data="items"
               :server="selectedServer"
               :meta_name="name"
+              :showRemoveButton="true"
+              @remove="removeSelectedRow"
             >
             </DataRow>
           </tbody>
@@ -324,7 +332,6 @@ function sortOutputs(key: string) {
               :metadata="metadataElements"
               :displayedItems="displayItems"
               @add="addRow"
-              @remove="removeRow"
               @reset="resetRows"
               @error="showError"
             ></RowAdder>

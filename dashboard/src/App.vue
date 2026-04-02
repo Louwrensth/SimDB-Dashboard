@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
+
+// Version is registered as a global property in main.ts
+declare const __APP_VERSION__: string
 </script>
 
 <template>
@@ -7,7 +10,7 @@ import { RouterView } from 'vue-router'
     <v-system-bar app dark color="#002F55">
       ITER Simulation Database
       <v-spacer></v-spacer>
-      Version 0.8.0
+        Version {{ __APP_VERSION__ }}
       </v-system-bar>
 
     <v-app-bar app shrink-on-scroll dark color="#002F55" height="80" dense>
@@ -18,12 +21,12 @@ import { RouterView } from 'vue-router'
           href="/dashboard"
           class="text-none text-h4"
           style="letter-spacing: 0; color: white !important;"
-          >SimDB Dashboard</v-btn
         >
+          SimDB Dashboard
+        </v-btn>
       </v-toolbar-title>
       <v-spacer></v-spacer>
     </v-app-bar>
-
     <v-main>
       <RouterView></RouterView>
     </v-main>
