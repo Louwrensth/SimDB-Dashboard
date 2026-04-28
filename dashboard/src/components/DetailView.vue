@@ -321,6 +321,7 @@ function sortOutputs(key: string) {
               :data="items"
               :server="selectedServer"
               :meta_name="name"
+              :simId="uuid?.hex"
               :showRemoveButton="true"
               @remove="removeSelectedRow"
             >
