@@ -5,13 +5,11 @@ import { to_i32_array, to_f32_array, to_f64_array } from '../common'
 import { config } from '../config'
 
 import PlotlyLoader from './PlotlyLoader.vue'
-import { truncateSummary } from '../utils/utils'
 
 type Data = { element: string; value: any }
 type UUIDValue = { _type: string; hex: string }
 type NumpyValue = { _type: string; bytes: string; dtype: string }
 type Trace = { name: string; x?: number[]; y: number[] }
-
 const props = defineProps<{
   name: string
   value?: number | string | NumpyValue | UUIDValue
@@ -25,17 +23,20 @@ const props = defineProps<{
 
 const emit = defineEmits(['remove'])
 
-// API response shape (IDS provenance + data)
+type QuantityData = {
+  name: string
+  units: string
+  data: any
+}
+
+// API response shape matching ImasDataResponse from the backend
 type ApiResult = {
-  value: any
-  shape?: number[]
-  coordinate?: string | null
-  coordinateData?: any
-  // IDS provenance fields returned by the API
-  path?: string
-  file_uuid?: string
-  occurrence?: number
   simulation?: string
+  file_uuid?: string
+  path?: string
+  occurrence?: number
+  field: QuantityData
+  coordinates: QuantityData[]
 }
 
 const fetchedValue = ref<ApiResult | null>(null)
@@ -50,30 +51,16 @@ function toDataPath(metaName: string): string {
   return 'summary/' + name.replace(/\./g, '/')
 }
 
-async function fetchApiRaw(path: string): Promise<ApiResult> {
-  const url = `${props.server}/v${config.api_version}/simulation/${props.simId}/data?path=${encodeURIComponent(path)}`
-  const resp = await fetch(url)
-  if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`)
-  return resp.json() // API returns { value, shape, coordinate, ... }
-}
-
 async function fetchData() {
   if (!props.simId || !props.server) return
   isFetching.value = true
   fetchError.value = null
   fetchedValue.value = null
   try {
-    const response = await fetchApiRaw(toDataPath(props.meta_name))
-    let coordinateData: any = null
-    if (response.coordinate) {
-      try {
-        const coordResponse = await fetchApiRaw(response.coordinate)
-        coordinateData = coordResponse.value
-      } catch {
-        // coordinate is optional — silently ignore failures
-      }
-    }
-    fetchedValue.value = { ...response, coordinateData }
+    const url = `${props.server}/v${config.api_version}/simulation/${props.simId}/data?path=${encodeURIComponent(toDataPath(props.meta_name))}`
+    const resp = await fetch(url)
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`)
+    fetchedValue.value = await resp.json()
   } catch (e: any) {
     fetchError.value = e.message ?? String(e)
   } finally {
@@ -97,12 +84,13 @@ function toNumberArray(val: any): number[] {
 
 function getFetchedTraces(): Trace[] {
   if (!fetchedValue.value) return []
-  const { value, coordinateData } = fetchedValue.value
-  const yArr = toNumberArray(value)
+  const fieldData = fetchedValue.value.field?.data
+  const yArr = toNumberArray(fieldData)
   if (yArr.length === 0) return []
   const trace: Trace = { name: props.name, y: yArr }
-  if (coordinateData !== null && coordinateData !== undefined) {
-    const xArr = toNumberArray(coordinateData)
+  const coordData = fetchedValue.value.coordinates?.[0]?.data
+  if (coordData !== null && coordData !== undefined) {
+    const xArr = toNumberArray(coordData)
     if (xArr.length > 0) trace.x = xArr
   } else {
     trace.x = Array.from({ length: yArr.length }, (_, i) => i)
@@ -110,24 +98,28 @@ function getFetchedTraces(): Trace[] {
   return [trace]
 }
 
-/** Label for x-axis */
+/** Label for x-axis (last segment of coordinate name + units) */
 function getCoordinateLabel(): string {
-  if (!fetchedValue.value?.coordinate) return ''
-  const parts = fetchedValue.value.coordinate.split('/')
-  return parts[parts.length - 1]
+  const coord = fetchedValue.value?.coordinates?.[0]
+  if (!coord) return ''
+  const parts = coord.name.split('/')
+  const name = parts[parts.length - 1]
+  return coord.units ? `${name} [${coord.units}]` : name
 }
 
 function isFetchedArray(): boolean {
   if (!fetchedValue.value) return false
-  const v = fetchedValue.value.value
+  const v = fetchedValue.value.field?.data
   return Array.isArray(v) || isNumpyArray(v)
 }
 
 function isFetchedScalar(): boolean {
   if (!fetchedValue.value) return false
-  const v = fetchedValue.value.value
-  return typeof v === 'number' || typeof v === 'string'
+  const v = fetchedValue.value.field?.data
+  return (Array.isArray(v) && v.length === 1) || typeof v === 'number' || typeof v === 'string'
 }
+
+
 
 function getTraces(value: any): Trace[] {
   const trace: Trace = {
@@ -235,12 +227,12 @@ onMounted(() => {
             <PlotlyLoader
               :id="'plot' + index"
               :traces="getFetchedTraces()"
-              :ylabel="meta_name"
-              :xlabel="fetchedValue!.coordinate ? getCoordinateLabel() : 'index'"
+              :ylabel="fetchedValue!.field.units ? `${meta_name} [${fetchedValue!.field.units}]` : meta_name"
+              :xlabel="fetchedValue!.coordinates?.length ? getCoordinateLabel() : 'index'"
             ></PlotlyLoader>
           </template>
           <template v-else-if="isFetchedScalar()">
-            <span>{{ fetchedValue!.value }}</span>
+            <span>{{ Array.isArray(fetchedValue!.field?.data) ? fetchedValue!.field.data[0] : fetchedValue!.field?.data }}</span>
           </template>
           <template v-else-if="fetchedValue">
             <span class="text-caption text-medium-emphasis">No data at: {{ toDataPath(meta_name) }}</span>
