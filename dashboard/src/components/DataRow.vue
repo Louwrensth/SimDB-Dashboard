@@ -5,11 +5,13 @@ import { to_i32_array, to_f32_array, to_f64_array } from '../common'
 import { config } from '../config'
 
 import PlotlyLoader from './PlotlyLoader.vue'
+import { truncateSummary } from '../utils/utils'
 
 type Data = { element: string; value: any }
 type UUIDValue = { _type: string; hex: string }
 type NumpyValue = { _type: string; bytes: string; dtype: string }
 type Trace = { name: string; x?: number[]; y: number[] }
+
 const props = defineProps<{
   name: string
   value?: number | string | NumpyValue | UUIDValue
@@ -91,9 +93,7 @@ function getFetchedTraces(): Trace[] {
   const coordData = fetchedValue.value.coordinates?.[0]?.data
   if (coordData !== null && coordData !== undefined) {
     const xArr = toNumberArray(coordData)
-    if (xArr.length > 0) trace.x = xArr
-  } else {
-    trace.x = Array.from({ length: yArr.length }, (_, i) => i)
+    if (xArr.length === yArr.length) trace.x = xArr
   }
   return [trace]
 }
@@ -228,7 +228,7 @@ onMounted(() => {
               :id="'plot' + index"
               :traces="getFetchedTraces()"
               :ylabel="fetchedValue!.field.units ? `${meta_name} [${fetchedValue!.field.units}]` : meta_name"
-              :xlabel="fetchedValue!.coordinates?.length ? getCoordinateLabel() : 'index'"
+              :xlabel="getCoordinateLabel()"
             ></PlotlyLoader>
           </template>
           <template v-else-if="isFetchedScalar()">
