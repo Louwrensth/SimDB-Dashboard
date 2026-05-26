@@ -1,6 +1,6 @@
 <!-- eslint-disable no-prototype-builtins -->
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, watch } from 'vue'
 import { to_i32_array, to_f32_array, to_f64_array } from '../common'
 import { config } from '../config'
 
@@ -192,12 +192,15 @@ function handleRemove() {
   emit('remove', props.index)
 }
 
-// Auto-fetch when this row is mounted, but only for array-typed metadata fields
-onMounted(() => {
-  if (isArray() && props.simId && props.server) {
-    fetchData()
-  }
-})
+watch(
+  [() => props.value, () => props.simId, () => props.server, () => props.meta_name],
+  () => {
+    if (isArray() && props.simId && props.server) {
+      fetchData()
+    }
+  },
+  { immediate: true }
+)
 </script>
 
 <template>
