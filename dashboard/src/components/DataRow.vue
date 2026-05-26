@@ -98,13 +98,20 @@ function getFetchedTraces(): Trace[] {
   return [trace]
 }
 
-/** Label for x-axis (last segment of coordinate name + units) */
+/** Label for x-axis */
 function getCoordinateLabel(): string {
   const coord = fetchedValue.value?.coordinates?.[0]
   if (!coord) return ''
-  const parts = coord.name.split('/')
-  const name = parts[parts.length - 1]
+  const name = coord.name.replace(/^summary\//, '')
   return coord.units ? `${name} [${coord.units}]` : name
+}
+
+/** Label for y-axis  */
+function getFieldLabel(): string {
+  const field = fetchedValue.value?.field
+  if (!field) return props.meta_name
+  const name = field.name.replace(/^summary\//, '')
+  return field.units ? `${name} [${field.units}]` : name
 }
 
 function isFetchedArray(): boolean {
@@ -143,6 +150,11 @@ function processValue(value: any) {
   if (value !== 0 && !value) {
     return 'No data available.'
   }
+  
+  if (value && typeof value === 'object' && 'min' in value && 'max' in value) {
+    return `Range: [${value.min}, ${value.max}]`
+  }
+  
   if (value.hasOwnProperty('_type') && value._type === 'numpy.ndarray') {
     if (value.dtype === 'int32') {
       return to_i32_array(value.bytes)
@@ -162,13 +174,30 @@ function isXML() {
 }
 
 function isArray() {
-  return (
+  // Check if it's a numpy array (compatibility with old database)
+  if (
     props.value &&
     typeof props.value !== 'string' &&
     typeof props.value !== 'number' &&
     props.value._type === 'numpy.ndarray' &&
     props.name !== 'time'
-  )
+  ) {
+    return true
+  }
+  
+  // Check if it's a range object 
+  // Arrays are stored as { min: value, max: value } in metadata
+  if (
+    props.value &&
+    typeof props.value === 'object' &&
+    'min' in props.value &&
+    'max' in props.value &&
+    props.name !== 'time'
+  ) {
+    return true
+  }
+  
+  return false
 }
 
 function isUUID() {
@@ -195,7 +224,11 @@ function handleRemove() {
 watch(
   [() => props.value, () => props.simId, () => props.server, () => props.meta_name],
   () => {
-    if (isArray() && props.simId && props.server) {
+    const shouldFetch = (isArray()) 
+                        && props.simId 
+                        && props.server
+    
+    if (shouldFetch) {
       fetchData()
     }
   },
@@ -230,7 +263,7 @@ watch(
             <PlotlyLoader
               :id="'plot' + index"
               :traces="getFetchedTraces()"
-              :ylabel="fetchedValue!.field.units ? `${meta_name} [${fetchedValue!.field.units}]` : meta_name"
+              :ylabel="getFieldLabel()"
               :xlabel="getCoordinateLabel()"
             ></PlotlyLoader>
           </template>
@@ -239,6 +272,9 @@ watch(
           </template>
           <template v-else-if="fetchedValue">
             <span class="text-caption text-medium-emphasis">No data at: {{ toDataPath(meta_name) }}</span>
+          </template>
+          <template v-else>
+            <span class="text-caption text-medium-emphasis">No data available</span>
           </template>
         </template>
         <template v-else-if="isUUID()">
