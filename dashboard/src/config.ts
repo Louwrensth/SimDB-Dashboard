@@ -3,14 +3,14 @@ export { config }
 const config: Readonly<{ [key: string]: any }> = {
   api_version: '1.2',
   servers: [
-    'https://simdb.iter.org/scenarios/api',
+    '/scenarios/api',
     //'https://simdb.iter.org/itpa/api',    
   ],
   serverConfig: {
-    'https://simdb.iter.org/scenarios/api': { 'requiresAuth': false },
+    '/scenarios/api': { 'requiresAuth': false },
     //'https://simdb.iter.org/itpa/api': { 'requiresAuth': false },
   },
-  defaultServer: 'https://simdb.iter.org/scenarios/api',
+  defaultServer: '/scenarios/api',
   searchFields: ['alias', 'code.name', 'global_quantities.ip.value', 'global_quantities.b0.value', 'heating_current_drive.power_additional.value', 'description'],
   searchOutputFields: [
     'code.name',
