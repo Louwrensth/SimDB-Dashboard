@@ -24,3 +24,12 @@ This will serve static files from /www/data so /www/data/dashboard/index.html wi
 
 The `try_files` is required to allow for the behaviour of the single page app, as all endpoints under /dashboard will 
 end up falling back to being served by /dashboard/index.html.
+
+## Running with Docker Compose
+
+1. From the repository root, build the image: `docker compose build`
+2. Start the container: `docker compose up`
+3. Open the dashboard at `http://localhost:8080/dashboard/`
+
+The container image builds the frontend from `dashboard/` with Node.js and serves the generated static files with nginx.
+Requests under `/api/` are proxied to a Flask backend expected to be reachable from the Docker host on port `5000`.

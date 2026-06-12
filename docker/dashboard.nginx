@@ -1,9 +1,37 @@
 server {
-    listen 80;
-    server_name localhost;
+    listen 8080;
+    # listen [::]:8080;
+    server_name _;
+    root /usr/share/nginx/html;
 
-    location / {
+    location = / {
+        return 302 /dashboard/;
+    }
+    location = /dashboard {
+        return 302 /dashboard/;
+    }
+    location /dashboard/ {
+        try_files $uri $uri/ /dashboard/index.html;
+    }
+    location /api/ {
+        # maps /api/v1.2 -> :5000/v1.2 etc
         include proxy_params;
-        proxy_pass http://dashboard:5000;
+        # trailing slash strips /api/ part:
+        proxy_pass http://host.docker.internal:5000/;
+    }
+    location ~ ^/v1(?:\.\d+)?/ {
+        # maps /v1.2 -> :5000/v1.2 etc
+        include proxy_params;
+        # note w/o trailing slash
+        proxy_pass http://host.docker.internal:5000;
+    }
+    location = /dashboard/runtime-config.js {
+        # Inject public $host ip in HOST_PLACHOLDER
+        default_type application/javascript;
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+        try_files /runtime-config-template.js =404;
+        sub_filter_once off;
+        sub_filter_types application/javascript;
+        sub_filter 'HOST_PLACEHOLDER' '$host';
     }
 }

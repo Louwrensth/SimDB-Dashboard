@@ -1,16 +1,42 @@
 export { config }
 
+type ServerConfig = {
+  requiresAuth: boolean
+}
+
+type RuntimeConfig = {
+  servers: string[]
+  serverConfig: Record<string, ServerConfig>
+  defaultServer: string
+}
+
+const runtimeConfig = (globalThis as { __SIMDB_RUNTIME_CONFIG__?: RuntimeConfig }).__SIMDB_RUNTIME_CONFIG__
+
+if (!runtimeConfig) {
+  throw new Error('Missing required runtime configuration: window.__SIMDB_RUNTIME_CONFIG__.')
+}
+
+if (!Array.isArray(runtimeConfig.servers) || runtimeConfig.servers.length === 0) {
+  throw new Error('Invalid runtime configuration: "servers" must be a non-empty array.')
+}
+
+if (!runtimeConfig.serverConfig || typeof runtimeConfig.serverConfig !== 'object') {
+  throw new Error('Invalid runtime configuration: "serverConfig" must be an object.')
+}
+
+if (typeof runtimeConfig.defaultServer !== 'string' || runtimeConfig.defaultServer.length === 0) {
+  throw new Error('Invalid runtime configuration: "defaultServer" must be a non-empty string.')
+}
+
+const servers = runtimeConfig.servers
+const serverConfig = runtimeConfig.serverConfig
+const defaultServer = runtimeConfig.defaultServer
+
 const config: Readonly<{ [key: string]: any }> = {
   api_version: '1.2',
-  servers: [
-    'https://simdb.iter.org/scenarios/api',
-    //'https://simdb.iter.org/itpa/api',    
-  ],
-  serverConfig: {
-    'https://simdb.iter.org/scenarios/api': { 'requiresAuth': false },
-    //'https://simdb.iter.org/itpa/api': { 'requiresAuth': false },
-  },
-  defaultServer: 'https://simdb.iter.org/scenarios/api',
+  servers,
+  serverConfig,
+  defaultServer,
   searchFields: ['alias', 'code.name', 'global_quantities.ip.value', 'global_quantities.b0.value', 'heating_current_drive.power_additional.value', 'description'],
   searchOutputFields: [
     'code.name',
