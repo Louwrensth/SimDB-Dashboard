@@ -1,9 +1,20 @@
-FROM python:3.7
-COPY ./ /tmp/dashboard/
-RUN cd /tmp/dashboard/ && \
-    pip3 install . && \
-    pip3 install flask gunicorn && \
-    rm -rf /tmp/dashboard
+FROM node:24-alpine AS build
 
-ENTRYPOINT ["gunicorn", "--bind=0.0.0.0:5000", "--workers=1", "dashboard.wsgi:app"]
-EXPOSE 5000
+WORKDIR /app
+
+COPY dashboard/package.json dashboard/package-lock.json ./dashboard/
+
+WORKDIR /app/dashboard
+RUN npm ci
+
+COPY dashboard/ ./
+RUN npm run build
+
+FROM nginx:1.27-alpine
+
+COPY docker/dashboard.nginx /etc/nginx/conf.d/default.conf
+COPY --from=build /app/dashboard/dist /usr/share/nginx/html/dashboard
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

@@ -1,0 +1,7 @@
+.git
+.github
+docs
+scripts
+node_modules
+dashboard/node_modules
+dashboard/dist
