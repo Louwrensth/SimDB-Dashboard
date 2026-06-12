@@ -1,6 +1,6 @@
 # Development guide
 
-The SimDB dashboard is a single page Vue.js application built using Vite and npm.
+The SimDB dashboard is a single page Vue.js application built using Vite and Bun.
 
 
 
@@ -15,18 +15,18 @@ You can clone the code using git and run a development version of the dashboard 
 ```bash
 git clone git@github.com:iterorganization/SimDB-Dashboard.git
 cd SimDB-Dashboard/dashboard
-npm install
-npm run dev
+bun install
+bun run dev
 ```
 
 You can build the dashboard using:
 
 ```bash
-npm run build
+bun run build
 ```
 
 and can serve it using a test server by running:
 
 ```bash
-npm run preview
+bun run preview
 ```

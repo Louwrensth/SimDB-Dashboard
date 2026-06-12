@@ -1,14 +1,14 @@
-FROM node:24-alpine AS build
+FROM oven/bun:1 AS build
 
 WORKDIR /app
 
-COPY dashboard/package.json dashboard/package-lock.json ./dashboard/
+COPY dashboard/package.json dashboard/bun.lock ./dashboard/
 
 WORKDIR /app/dashboard
-RUN npm ci
+RUN bun install --frozen-lockfile
 
 COPY dashboard/ ./
-RUN npm run build
+RUN bun run build
 
 FROM nginx:1.27-alpine
 
