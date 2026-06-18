@@ -1,7 +1,14 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
+# CI pipeline orchestrated with Make targets and Docker build stages.
+# Node version is defined in the Dockerfile.
+# Buildx cache settings are provided through CACHE_FROM and CACHE_TO.
+# Local and CI execution stay aligned through the same make commands.
 
 name: CI/CD Pipeline
+
+env:
+  CACHE_FROM: type=gha,scope=simdb-dashboard
+  CACHE_TO: type=gha,mode=max,scope=simdb-dashboard
+  DOCKER_BUILDKIT: "1"
 
 on:
   push:
@@ -10,89 +17,43 @@ on:
     branches: [ "develop" ]
 
 jobs:
-  define-matrix:
-    name: Define Node matrix
-    runs-on: ubuntu-22.04
-    outputs:
-      node-versions: ${{ steps.set-matrix.outputs.node-versions }}
-    steps:
-    - name: Set Node versions
-      id: set-matrix
-      run: echo 'node-versions={"node-version":["22.x","24.x","26.x"]}' >> "$GITHUB_OUTPUT"
-
-  test:
-    name: Test and Lint
-    runs-on: ubuntu-22.04
-    needs: define-matrix
-
-    strategy:
-      matrix: ${{ fromJSON(needs.define-matrix.outputs.node-versions) }}
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v7
-    
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v6
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-        cache-dependency-path: dashboard/package-lock.json
-
-    - name: Install dependencies
-      run: |
-        cd dashboard
-        npm ci
-        
-    - name: Run linter
-      run: |
-        cd dashboard
-        npm run lint
-        
-    - name: Run type check
-      run: |
-        cd dashboard
-        npm run type-check        
-        
-    - name: Upload coverage reports
-      uses: codecov/codecov-action@v7
-      with:
-        directory: ./dashboard/coverage
-
   build:
-    name: Build Application
+    name: Build service image
     runs-on: ubuntu-22.04
-    needs:
-    - define-matrix
-    - test
-
-    strategy:
-      matrix: ${{ fromJSON(needs.define-matrix.outputs.node-versions) }}
-    
     steps:
     - name: Checkout code
       uses: actions/checkout@v7
-      
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v6
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-        cache-dependency-path: dashboard/package-lock.json
-        
-    - name: Install dependencies
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build service image (docker stage)
+      run: make service
+
+    - name: Run tests (docker stage)
       run: |
-        cd dashboard
-        npm ci
-        
-    - name: Build application
+        mkdir -p test-results
+        make test 2>&1 | tee test-results/test.log
+
+    - name: Extract frontend assets
+      run: make dist
+
+    - name: Export service image artifact
       run: |
-        cd dashboard
-        npm run build
-        
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v7
+        mkdir -p artifacts
+        docker image inspect simdb-dashboard:service >/dev/null 2>&1
+        docker save -o artifacts/simdb-dashboard.tar simdb-dashboard:service
+
+    - name: Upload static assets artifact
+      uses: actions/upload-artifact@v4
       with:
-        name: dist-${{ matrix.node-version }}
-        path: dashboard/dist/
+        name: dist
+        path: dist/
+        retention-days: 7
+
+    - name: Upload service image artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: simdb-dashboard
+        path: artifacts/simdb-dashboard.tar
         retention-days: 7
