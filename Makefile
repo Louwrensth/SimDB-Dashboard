@@ -5,7 +5,8 @@ CACHE_DIR ?= .buildx-cache
 CACHE_FROM ?= type=local,src=$(CACHE_DIR)
 CACHE_TO ?= type=local,dest=$(CACHE_DIR),mode=max
 
-DOCKER_BUILD := docker buildx build --load --build-arg APP_VERSION="$(VERSION)" --cache-from $(CACHE_FROM) --cache-to $(CACHE_TO)
+BUILDER_NAME ?= simdb-builder
+DOCKER_BUILD := docker buildx build --builder $(BUILDER_NAME) --load --build-arg APP_VERSION="$(VERSION)" --cache-from $(CACHE_FROM) --cache-to $(CACHE_TO)
 DOCKER_COMPOSE := APP_VERSION="$(VERSION)" docker compose
 
 BUILD_IMAGE := simdb-dashboard:build
@@ -15,6 +16,7 @@ SERVICE_IMAGE := simdb-dashboard:service
 
 .PHONY: \
 	help \
+	buildx-setup \
 	service \
 	up \
 	down \
@@ -44,6 +46,9 @@ help:
 	@echo "  make test            Build and run Docker test stage"
 	@echo "  make build           Build application build stage and tag $(BUILD_IMAGE)"
 	@echo ""
+	@echo "Setup (run once):"
+	@echo "  make buildx-setup    Create buildx builder with docker-container driver (required for cache)"
+	@echo ""
 	@echo "Developer utilities:"
 	@echo "  make npm-dev         Run Vite dev server with bind mount for live local changes"
 	@echo "  make version         Show git-derived application version"
@@ -62,6 +67,9 @@ help:
 	@echo "    CACHE_FROM=type=local,src=.buildx-cache CACHE_TO=type=local,dest=.buildx-cache,mode=max make lint"
 	@echo "  Build with GitHub Actions buildx cache:"
 	@echo "    CACHE_FROM=type=gha,scope=simdb-dashboard CACHE_TO=type=gha,mode=max,scope=simdb-dashboard make lint"
+
+buildx-setup:
+	docker buildx create --name $(BUILDER_NAME) --driver docker-container --bootstrap --use 2>/dev/null || docker buildx use $(BUILDER_NAME)
 
 # Compose targets
 up:
