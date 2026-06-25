@@ -43,7 +43,6 @@ type ApiResult = {
 
 const fetchedValue = ref<ApiResult | null>(null)
 const isFetching = ref(false)
-const fetchError = ref<string | null>(null)
 
 /** Convert dot-notation metadata key → summary IDS slash-path.
  *  "global_quantities.ip.value"         → "summary/global_quantities/ip/value"
@@ -56,15 +55,14 @@ function toDataPath(metaName: string): string {
 async function fetchData() {
   if (!props.simId || !props.server) return
   isFetching.value = true
-  fetchError.value = null
   fetchedValue.value = null
   try {
     const url = `${props.server}/v${config.api_version}/simulation/${props.simId}/data?path=${encodeURIComponent(toDataPath(props.meta_name))}`
     const resp = await fetch(url)
     if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`)
     fetchedValue.value = await resp.json()
-  } catch (e: any) {
-    fetchError.value = e.message ?? String(e)
+  } catch {
+    // Keep displaying the metadata value when this path has no data.
   } finally {
     isFetching.value = false
   }
@@ -118,32 +116,6 @@ function isFetchedArray(): boolean {
   if (!fetchedValue.value) return false
   const v = fetchedValue.value.field?.data
   return Array.isArray(v) || isNumpyArray(v)
-}
-
-function isFetchedScalar(): boolean {
-  if (!fetchedValue.value) return false
-  const v = fetchedValue.value.field?.data
-  return (Array.isArray(v) && v.length === 1) || typeof v === 'number' || typeof v === 'string'
-}
-
-
-
-function getTraces(value: any): Trace[] {
-  const trace: Trace = {
-    name: props.name,
-    y: processValue(value)
-  }
-  const x_trace = getXData()
-  if (x_trace) {
-    trace['x'] = x_trace
-  }
-  return [trace]
-}
-
-function getXData() {
-  let root = props.name.split('.')[0]
-  let time = props.data.find((el) => el.element === root + '.time')
-  return time ? processValue(time.value) : null
 }
 
 function processValue(value: any) {
@@ -224,13 +196,7 @@ function handleRemove() {
 watch(
   [() => props.value, () => props.simId, () => props.server, () => props.meta_name],
   () => {
-    const shouldFetch = (isArray()) 
-                        && props.simId 
-                        && props.server
-    
-    if (shouldFetch) {
-      fetchData()
-    }
+    fetchData()
   },
   { immediate: true }
 )
@@ -251,37 +217,13 @@ watch(
           </v-card>
         </template>
         <template v-else-if="isArray()">
-          <div v-if="isFetching" class="d-flex align-center ga-2">
-            <v-progress-circular indeterminate size="18" width="2"></v-progress-circular>
-            <span class="text-caption">Loading…</span>
-          </div>
-          <div v-else-if="fetchError" class="d-flex align-center ga-2">
-            <span class="text-error text-caption">{{ fetchError }}</span>
-            <v-btn size="x-small" variant="text" @click="fetchData">Retry</v-btn>
-          </div>
-          <template v-else-if="isFetchedArray()">
-            <PlotlyLoader
-              :id="'plot' + index"
-              :traces="getFetchedTraces()"
-              :ylabel="getFieldLabel()"
-              :xlabel="getCoordinateLabel()"
-            ></PlotlyLoader>
-          </template>
-          <template v-else-if="isFetchedScalar()">
-            <span>{{ Array.isArray(fetchedValue!.field?.data) ? fetchedValue!.field.data[0] : fetchedValue!.field?.data }}</span>
-          </template>
-          <template v-else-if="fetchedValue">
-            <span class="text-caption text-medium-emphasis">No data at: {{ toDataPath(meta_name) }}</span>
-          </template>
-          <template v-else>
-            <span class="text-caption text-medium-emphasis">No data available</span>
-          </template>
+          <span style="white-space: pre-wrap">{{ processValue(value) }}</span>
         </template>
         <template v-else-if="isUUID()">
           <a :href="'/' + config.prefix + '/uuid/' + getHex(value)" :title="getHex(value)">{{ getHex(value) }}</a>
         </template>
         <template v-else-if="isShortString()">
-          <a :href="'/' + config.prefix + '../?__server=' + server + '&' + meta_name + '=eq:' + value">{{
+          <a :href="'/' + config.prefix + '?__server=' + server + '&' + meta_name + '=eq:' + value">{{
             processValue(value)
           }}</a>
         </template>
@@ -291,6 +233,20 @@ watch(
           </span>
         </template>
         <template v-else> No data available. </template>
+        <PlotlyLoader
+          v-if="isFetchedArray()"
+          :id="'plot' + index"
+          :traces="getFetchedTraces()"
+          :ylabel="getFieldLabel()"
+          :xlabel="getCoordinateLabel()"
+        ></PlotlyLoader>
+        <v-progress-circular
+          v-if="isFetching"
+          class="ml-2"
+          indeterminate
+          size="14"
+          width="2"
+        ></v-progress-circular>
       </v-container>
     </td>
     <td v-if="showRemoveButton !== false" style="width: 1em; text-align: center;">
