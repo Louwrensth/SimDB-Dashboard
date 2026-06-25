@@ -21,7 +21,7 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
     
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v6
@@ -46,7 +46,7 @@ jobs:
         npm run type-check        
         
     - name: Upload coverage reports
-      uses: codecov/codecov-action@v6
+      uses: codecov/codecov-action@v7
       with:
         directory: ./dashboard/coverage
 
@@ -57,7 +57,7 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v6
