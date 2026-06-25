@@ -1,32 +1,42 @@
 # Development guide
 
-The SimDB dashboard is a single page Vue.js application built using Vite and npm.
-
-
-
-The SimDB dashboard consists of a few pages being served from a flask app, with the frontend interactivity being handled by the Vue.js library.
-
-The dashboard consists mostly of static pages and javascript files, with Flask being used to set some configuration values in the html pages being served.
+The SimDB dashboard frontend is a Vite/Vue single-page app. The recommended development workflow is to run the Vite dev server through Make using Docker.
 
 ## Setting up a development environment
 
-You can clone the code using git and run a development version of the dashboard using:
+1. Clone the repository:
 
 ```bash
 git clone git@github.com:iterorganization/SimDB-Dashboard.git
-cd SimDB-Dashboard/dashboard
-npm install
-npm run dev
+cd SimDB-Dashboard
 ```
 
-You can build the dashboard using:
+2. Start the development server with hot reload:
 
 ```bash
-npm run build
+make dev
 ```
 
-and can serve it using a test server by running:
+3. Open the app in your browser:
+
+```text
+http://localhost:5173/dashboard/
+```
+
+The `make dev` target runs the Docker `dev` stage and starts Vite with live reload enabled. Source changes under `dashboard/` are mounted into the container and reflected immediately.
+
+## Other useful commands
+
+Run lint checks:
 
 ```bash
-npm run preview
+make lint
 ```
+
+Run unit tests:
+
+```bash
+make test
+```
+
+The `make test` target runs the Docker `test` stage. At the moment, the project does not include test files yet, so this target is configured to pass even when no tests are found.
