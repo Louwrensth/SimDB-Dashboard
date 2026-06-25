@@ -6,6 +6,7 @@ DOCKER_BUILD ?= docker build --build-arg APP_VERSION="$(VERSION)"
 DOCKER_COMPOSE ?= APP_VERSION="$(VERSION)" docker compose
 
 BUILD_IMAGE := simdb-dashboard:build
+DEV_IMAGE := simdb-dashboard:dev
 SERVICE_IMAGE := simdb-dashboard:service
 
 .DEFAULT_GOAL := service
@@ -19,6 +20,7 @@ SERVICE_IMAGE := simdb-dashboard:service
 	lint \
 	test \
 	build \
+	dev \
 	npm-dev \
 	version \
 	dist \
@@ -42,7 +44,7 @@ help:
 	@echo "  make build           Build application build stage and tag $(BUILD_IMAGE)"
 	@echo ""
 	@echo "Developer utilities:"
-	@echo "  make npm-dev         Run Vite dev server with bind mount for live local changes"
+	@echo "  make dev             Run Vite dev server from Docker dev stage with live local changes"
 	@echo "  make version         Show git-derived application version"
 	@echo ""
 	@echo "Artifacts and maintenance:"
@@ -80,9 +82,12 @@ service:
 	$(DOCKER_BUILD) --target service -t $(SERVICE_IMAGE) .
 
 # Developer utilities
-npm-dev:
-	docker run --rm -p 5173:5173 -v "$(PWD)/dashboard":/app -w /app node:24-alpine sh -c \
-		"npm ci && npm run dev -- --host 0.0.0.0 --port 5173"
+dev:
+	$(DOCKER_BUILD) --target dev -t $(DEV_IMAGE) .
+	docker run --rm -p 5173:5173 \
+		-v "$(PWD)/dashboard":/app \
+		-v simdb_dashboard_node_modules:/app/node_modules \
+		-w /app $(DEV_IMAGE)
 
 version:
 	@echo $(VERSION)
@@ -108,6 +113,7 @@ dashboard/package-lock.json: dashboard/package.json
 distclean:
 	$(DOCKER_COMPOSE) down --volumes --remove-orphans --rmi local
 	docker rmi -f $(BUILD_IMAGE) $(SERVICE_IMAGE) >/dev/null 2>&1 || true
+	docker volume rm -f simdb_dashboard_node_modules >/dev/null 2>&1 || true
 	rm -rf dist
 
 # Deployment

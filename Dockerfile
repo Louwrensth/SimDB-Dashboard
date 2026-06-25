@@ -5,6 +5,11 @@ COPY dashboard/package.json dashboard/package-lock.json ./
 RUN npm clean-install
 COPY dashboard/ ./
 
+# Dev stage: run Vite dev server from builder dependencies.
+FROM builder AS dev
+EXPOSE 5173
+CMD ["sh", "-c", "[ -x node_modules/.bin/vite ] || npm ci; npm run dev -- --host 0.0.0.0 --port 5173"]
+
 # Lint stage: run static checks against prepared source and dependencies.
 FROM builder AS lint
 RUN npm run lint
