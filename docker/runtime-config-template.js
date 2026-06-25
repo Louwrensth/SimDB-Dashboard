@@ -1,11 +1,11 @@
 window.__SIMDB_RUNTIME_CONFIG__ = {
   // Modify runtime settings for the Dockerized dashboard.
-  // Using SSI, inject the public host at HOST_PLACEHOLDER.
+  // nginx injects TOKENs at response time.
   servers: [
-    'http://HOST_PLACEHOLDER:5000',
+    'http://DASHBOARD_HOST:DASHBOARD_PORT/api',
   ],
-  defaultServer: 'http://HOST_PLACEHOLDER:5000',
+  defaultServer: 'http://DASHBOARD_HOST:DASHBOARD_PORT/api',
   serverConfig: {
-    'http://HOST_PLACEHOLDER:5000': { requiresAuth: false }
+    'http://DASHBOARD_HOST:DASHBOARD_PORT/api': { requiresAuth: false }
   }
 }

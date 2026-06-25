@@ -1,8 +1,12 @@
+# save this template as /etc/nginx/templates/*.template and
+# envsubst will substitute ${SOMETHING} from environment at nginx startup
+
 server {
     listen 8080;
     # listen [::]:8080;
     server_name _;
     root /usr/share/nginx/html;
+    absolute_redirect off;
 
     location = / {
         return 302 /dashboard/;
@@ -17,22 +21,25 @@ server {
         # maps /api/v1.2 -> :5000/v1.2 etc
         include proxy_params;
         # trailing slash strips /api/ part:
-        proxy_pass http://host.docker.internal:5000/;
+        proxy_pass http://${API_HOST}:${API_PORT}/;
     }
     # maps /v1.2 -> :5000/v1.2 etc
-    # note w/o trailing slash
-    location /v1/ { include proxy_params; proxy_pass http://host.docker.internal:5000; }
-    location /v1.1/ { include proxy_params; proxy_pass http://host.docker.internal:5000; }
-    location /v1.2/ { include proxy_params; proxy_pass http://host.docker.internal:5000; }
-    location /swaggerui/ { include proxy_params; proxy_pass http://host.docker.internal:5000; }
+    # note w/o trailing slash (don't remove /v1.2)
+    location /v1/ { include proxy_params; proxy_pass http://${API_HOST}:${API_PORT}; }
+    location /v1.1/ { include proxy_params; proxy_pass http://${API_HOST}:${API_PORT}; }
+    location /v1.2/ { include proxy_params; proxy_pass http://${API_HOST}:${API_PORT}; }
+    location /swaggerui/ { include proxy_params; proxy_pass http://${API_HOST}:${API_PORT}; }
 
     location = /dashboard/runtime-config.js {
-        # Inject public $host ip in HOST_PLACHOLDER
         default_type application/javascript;
         add_header Cache-Control "no-cache, no-store, must-revalidate";
         try_files /runtime-config-template.js =404;
         sub_filter_once off;
         sub_filter_types application/javascript;
-        sub_filter 'HOST_PLACEHOLDER' '$host';
+        # Optional tokens to replace in template:
+        sub_filter 'DASHBOARD_HOST' '$host';
+        sub_filter 'DASHBOARD_PORT' '${DASHBOARD_PORT}';
+        sub_filter 'API_HOST' '${API_HOST}';
+        sub_filter 'API_PORT' '${API_PORT}';
     }
 }

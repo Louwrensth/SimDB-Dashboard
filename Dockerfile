@@ -26,7 +26,7 @@ RUN npm run build
 
 # Service stage: serve compiled static assets with nginx.
 FROM nginx:1.27-alpine AS service
-COPY docker/dashboard.nginx /etc/nginx/conf.d/default.conf
+COPY docker/dashboard.nginx /etc/nginx/templates/default.conf.template
 # App expects itself at urlpath /dashboard
 COPY --from=build /app/dist /usr/share/nginx/html/dashboard
 EXPOSE 8080
