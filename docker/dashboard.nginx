@@ -1,6 +1,14 @@
 # save this template as /etc/nginx/templates/*.template and
 # envsubst will substitute ${SOMETHING} from environment at nginx startup
 
+
+# Special value PUBLIC_SIMDB_HOST="DASHBOARD_HOST" (default set in docker compose) enables the app to send
+# simdb api requests to the backend via nginx proxy at location dashboard_host:dashboard_port/api
+# Otherwise, use it as the literal host of the simdb backend. e.g. PUBLIC_SIMDB_HOST=simdb.iter.org
+map "${PUBLIC_SIMDB_HOST}" $public_dashboard_host {
+    "DASHBOARD_HOST"    $host;
+    default             "${PUBLIC_SIMDB_HOST}";
+}
 server {
     listen 8080;
     # listen [::]:8080;
@@ -37,7 +45,8 @@ server {
         sub_filter_once off;
         sub_filter_types application/javascript;
         # Optional tokens to replace in template:
-        sub_filter 'DASHBOARD_HOST' '$host';
+        sub_filter 'SCHEME' '$scheme';
+        sub_filter 'PUBLIC_SIMDB_HOST' '$public_dashboard_host';
         sub_filter 'DASHBOARD_PORT' '${DASHBOARD_PORT}';
         sub_filter 'API_HOST' '${API_HOST}';
         sub_filter 'API_PORT' '${API_PORT}';
