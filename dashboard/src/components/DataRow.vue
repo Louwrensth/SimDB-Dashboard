@@ -121,7 +121,7 @@ function handleRemove() {
           <a :href="'/' + config.prefix + '/uuid/' + getHex(value)" :title="getHex(value)">{{ getHex(value) }}</a>
         </template>
         <template v-else-if="isShortString()">
-          <a :href="'/' + config.prefix + '../?__server=' + server + '&' + meta_name + '=eq:' + value">{{
+          <a :href="'/' + config.prefix + '/?__server=' + server + '&' + meta_name + '=eq:' + value">{{
             processValue(value)
           }}</a>
         </template>
