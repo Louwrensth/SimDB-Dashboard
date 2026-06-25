@@ -58,16 +58,43 @@ Stop the service when needed:
 make down
 ```
 
+Did something change in the `docker-compose.yml` or `docker/*` files? Stop the service, and restart service (rebuild not necessary):
+
+```sh
+make down up
+```
+
+Changed something in the `dashboard/*` sources? (e.g. after a `git pull`.) Stop the service, rebuild the image (dependencies are cached) and restart the service:
+
+```sh
+make down build up
+```
+
 Notes:
 
 - `make up` starts Compose using the prebuilt `simdb-dashboard:service` image.
 - Requests under `/api/` are proxied by nginx to a backend expected at
   `host.docker.internal:5000`.
-- You can change the host port with `DASHBOARD_PORT`, for example:
+- You can restart and change the host port with `DASHBOARD_PORT`, for example:
 
 ```sh
-DASHBOARD_PORT=8080 make up
+DASHBOARD_PORT=8080 make down up
 ```
+
+- You can change the (internal proxy address of the) SimDB server host and port with `API_HOST` and/or `API_PORT` (default is host.docker.internal:5000), for example:
+
+```sh
+DASHBOARD_PORT=8081 API_PORT=5001 make down up
+DASHBOARD_PORT=8082 API_HOST=172.20.0.1 API_PORT=5001 make down up
+```
+
+- Instead of using the proxy to reach the SimDB server, you can have the Dashboard interact with the SimDB server directly on a public host with `PUBLIC_SIMDB_HOST` (default is to use the implicit `DASHBOARD_HOST`), for example:
+
+```sh
+PUBLIC_SIMDB_HOST=simdb.iter.org API_PORT=5000 make down up
+```
+
+But, if you got to this point it might be better to modify `docker/runtime-config-template.js` directly.
 
 ## Static artifact installation (non-Compose nginx deployments)
 
