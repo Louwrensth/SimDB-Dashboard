@@ -10,11 +10,12 @@ import { truncateSummary } from '../utils/utils'
 type Data = { element: string; value: any }
 type UUIDValue = { _type: string; hex: string }
 type NumpyValue = { _type: string; bytes: string; dtype: string }
+type RangeValue = { min: number; max: number }
 type Trace = { name: string; x?: number[]; y: number[] }
 
 const props = defineProps<{
   name: string
-  value?: number | string | NumpyValue | UUIDValue
+  value?: number | string | NumpyValue | UUIDValue | RangeValue
   index: number
   data: Data[]
   server: string | null
@@ -149,8 +150,8 @@ function isArray() {
   // Check if it's a numpy array (compatibility with old database)
   if (
     props.value &&
-    typeof props.value !== 'string' &&
-    typeof props.value !== 'number' &&
+    typeof props.value === 'object' &&
+    '_type' in props.value &&
     props.value._type === 'numpy.ndarray' &&
     props.name !== 'time'
   ) {
@@ -175,8 +176,8 @@ function isArray() {
 function isUUID() {
   return (
     props.value &&
-    typeof props.value !== 'string' &&
-    typeof props.value !== 'number' &&
+    typeof props.value === 'object' &&
+    '_type' in props.value &&
     props.value._type === 'uuid.UUID'
   )
 }
@@ -185,7 +186,7 @@ function isShortString() {
   return props.value && props.value.toString && props.value.toString().length < 20
 }
 
-function getHex(value: number | string | NumpyValue | UUIDValue | undefined): string {
+function getHex(value: number | string | NumpyValue | UUIDValue | RangeValue | undefined): string {
   return (value && typeof value === 'object' && 'hex' in value) ? value.hex : '';
 }
 
@@ -196,7 +197,8 @@ function handleRemove() {
 watch(
   [() => props.value, () => props.simId, () => props.server, () => props.meta_name],
   () => {
-    fetchData()
+    fetchedValue.value = null
+    if (isArray()) fetchData()
   },
   { immediate: true }
 )
