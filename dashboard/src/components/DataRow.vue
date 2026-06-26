@@ -190,6 +190,15 @@ function getHex(value: number | string | NumpyValue | UUIDValue | RangeValue | u
   return (value && typeof value === 'object' && 'hex' in value) ? value.hex : '';
 }
 
+function getSearchHref(): string {
+  const params = new URLSearchParams()
+  if (props.server) {
+    params.set('__server', props.server)
+  }
+  params.set(props.meta_name, `eq:${String(props.value)}`)
+  return `/${config.prefix}?${params.toString()}`
+}
+
 function handleRemove() {
   emit('remove', props.index)
 }
@@ -225,7 +234,7 @@ watch(
           <a :href="'/' + config.prefix + '/uuid/' + getHex(value)" :title="getHex(value)">{{ getHex(value) }}</a>
         </template>
         <template v-else-if="isShortString()">
-          <a :href="'/' + config.prefix + '?__server=' + server + '&' + meta_name + '=eq:' + value">{{
+          <a :href="getSearchHref()">{{
             processValue(value)
           }}</a>
         </template>

@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import SearchOutput from './SearchOutput.vue'
 import SearchInput from './SearchInput.vue'
 
-const searchQuery = ref<string>('')
+const searchQuery = ref<string>(window.location.search)
 
 function doSearch(queryPath: string) {
   if (queryPath) {
