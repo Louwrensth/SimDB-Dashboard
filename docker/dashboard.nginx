@@ -15,29 +15,36 @@ server {
     server_name _;
     root /usr/share/nginx/html;
     absolute_redirect off;
+    resolver 127.0.0.11 valid=30s;
 
-    location = / {
-        return 302 /dashboard/;
-    }
-    location = /dashboard {
-        return 302 /dashboard/;
-    }
+    # dashboard app expects request url path to start with /dashboard/
+    location = /            { return 302 /dashboard/; }
+    location = /dashboard   { return 302 /dashboard/; }
     location /dashboard/ {
         try_files $uri $uri/ /dashboard/index.html;
     }
-    location /api/ {
-        # maps /api/v1.2 -> :5000/v1.2 etc
-        include proxy_params;
-        # trailing slash strips /api/ part:
-        proxy_pass http://${API_HOST}:${API_PORT}/;
-    }
-    # maps /v1.2 -> :5000/v1.2 etc
-    # note w/o trailing slash (don't remove /v1.2)
-    location /v1/ { include proxy_params; proxy_pass http://${API_HOST}:${API_PORT}; }
-    location /v1.1/ { include proxy_params; proxy_pass http://${API_HOST}:${API_PORT}; }
-    location /v1.2/ { include proxy_params; proxy_pass http://${API_HOST}:${API_PORT}; }
-    location /swaggerui/ { include proxy_params; proxy_pass http://${API_HOST}:${API_PORT}; }
 
+    # location proxies for simdb backend
+    # accepted prefixes, stripped:
+    #   (?:(?:scenarios/?)?(?:api/?)?)?
+    #   scenarios/, scenarios/api/, api/, or without /, or no prefix
+    # accepted paths, captured in "$app" (:
+    #   (?<app>v1(?:\.(?:0|1|2))?|swaggerui)?
+    #   v1, v1.0, v1.1, v1.2, swaggerui, or none
+    # any remaining path, captured in "$rest":
+    #   (?<rest>/.*)?
+    # # if suffix equals ",debug" (before ?query=) show the constructed proxy target
+    # location ~ ^/(?:(?:scenarios/?)?(?:api/?)?)?(?<app>v1(?:\.(?:0|1|2))?|swaggerui)?(?<rest>/.*)?,debug$ {
+    #     return 200 "proxy_pass http://${API_HOST}:${API_PORT}/$app$rest$is_args$args;\n";
+    # }
+    location ~ ^/(?:(?:scenarios/?)?(?:api/?)?)?(?<app>v1(?:\.(?:0|1|2))?|swaggerui)?(?<rest>/.*)?$ {
+        include proxy_params;
+        proxy_pass http://${API_HOST}:${API_PORT}/$app$rest$is_args$args;
+    }
+
+    # dashboard is a simdb client;
+    # runtime-config.js defines the simdb remote url to use.
+    # runtime-config-template.js
     location = /dashboard/runtime-config.js {
         default_type application/javascript;
         add_header Cache-Control "no-cache, no-store, must-revalidate";
