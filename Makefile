@@ -13,22 +13,25 @@ SERVICE_IMAGE := simdb-dashboard:service
 .DEFAULT_GOAL := service
 
 .PHONY: \
-	help \
-	service \
-	up \
-	down \
-	builder \
-	lint \
-	test \
 	build \
+	builder \
+	clean-images \
+	deploy \
 	dev \
-	npm-dev \
-	version \
 	dist \
+	distclean \
+	down \
+	help \
+	lint \
+	logs-f \
+	service \
+	shell \
+	test \
+	type-check \
+	up \
 	update-base \
 	update-deps \
-	distclean \
-	deploy
+	version
 
 help:
 	@echo "Core workflow:"
@@ -45,9 +48,9 @@ help:
 	@echo "  make build           Build application build stage and tag $(BUILD_IMAGE)"
 	@echo ""
 	@echo "Developer utilities:"
-	@echo "  make lint            Runs npm run lint"
-	@echo "  make type-check      Runs npm run type-check"
-	@echo "  make test            Runs npm run test..."
+	@echo "  make lint            Run lint checks against the build image (make build first)"
+	@echo "  make type-check      Run TypeScript type checks against the build image (make build first)"
+	@echo "  make test            Run unit tests against the build image (make build first)"
 	@echo "  make dev             Run Vite dev server from Docker dev stage with live local changes"
 	@echo "  make version         Show git-derived application version"
 	@echo ""

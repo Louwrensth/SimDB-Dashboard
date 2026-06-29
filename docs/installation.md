@@ -28,25 +28,19 @@ make help
 
 From the repository root:
 
-1. Optional cache setup:
-
-```sh
-make cache-setup
-```
-
-2. Build the production service image:
+1. Build the production service image:
 
 ```sh
 make service
 ```
 
-3. Start the dashboard container:
+2. Start the dashboard container:
 
 ```sh
 make up
 ```
 
-4. Open the dashboard:
+3. Open the dashboard:
 
 ```text
 http://localhost:80/dashboard/
@@ -64,10 +58,10 @@ Did something change in the `docker-compose.yml` or `docker/*` files? Stop the s
 make down up
 ```
 
-Changed something in the `dashboard/*` sources? (e.g. after a `git pull`.) Stop the service, rebuild the image (dependencies are cached) and restart the service:
+Changed something in the `dashboard/*` sources? (e.g. after a `git pull`.) Stop the service, rebuild the service image (dependencies are cached) and restart:
 
 ```sh
-make down build up
+make down service up
 ```
 
 Notes:
@@ -136,8 +130,9 @@ This is required for client-side routes under `/dashboard/*`.
 Use Makefile targets for quality checks and updates:
 
 ```sh
-make lint         # run lint stage in Docker
-make test         # run unit tests in Docker
+make lint         # run lint checks against the build image
+make type-check   # run TypeScript type checks against the build image
+make test         # run unit tests against the build image
 make update-base  # rebuild service image pulling latest base images
 make update-deps  # refresh package-lock and apply npm audit fixes
 make distclean    # remove local images/artifacts and compose runtime state

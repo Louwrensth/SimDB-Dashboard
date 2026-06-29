@@ -39,4 +39,12 @@ Run unit tests:
 make test
 ```
 
-The `make test` target runs the Docker `test` stage. At the moment, the project does not include test files yet, so this target is configured to pass even when no tests are found.
+The `make lint`, `make type-check`, and `make test` targets each run `docker run` against the prebuilt `simdb-dashboard:build` image, so `make build` (or `make service`) must be run first.
+
+Run type checks:
+
+```bash
+make type-check
+```
+
+At the moment, the project does not include test files, so `make test` will exit with no tests found.
