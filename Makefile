@@ -32,7 +32,7 @@ SERVICE_IMAGE := simdb-dashboard:service
 
 help:
 	@echo "Core workflow:"
-	@echo "  make service         Build lint stage, build stage, then tag final service image"
+	@echo "  make service         Build and tag final service image"
 	@echo ""
 	@echo "Compose service (make service first):"
 	@echo "  make up              Start simdb-dashboard service using prebuilt service image"

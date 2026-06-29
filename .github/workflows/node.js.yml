@@ -12,7 +12,7 @@ on:
 
 jobs:
   build:
-    name: Build, test, and package
+    name: Build, verify, and package
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.value }}
@@ -32,27 +32,6 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v4
 
-    # APP_VERSION is _not_ passed to lint/test targets: those stages inherit from
-    # the builder stage which does not consume it, so omitting it avoids
-    # unnecessary cache invalidation on every run.
-    - name: Build lint target
-      uses: docker/build-push-action@v7
-      with:
-        context: .
-        target: lint
-        push: false
-        cache-from: ${{ env.CACHE_FROM }}
-        cache-to: ${{ env.CACHE_TO }}
-
-    - name: Build test target
-      uses: docker/build-push-action@v7
-      with:
-        context: .
-        target: test
-        push: false
-        cache-from: ${{ env.CACHE_FROM }}
-        cache-to: ${{ env.CACHE_TO }}
-
     # APP_VERSION is embedded into the static assets at build time
     - name: Build build target image
       uses: docker/build-push-action@v7
@@ -65,6 +44,15 @@ jobs:
         build-args: APP_VERSION=${{ steps.version.outputs.value }}
         cache-from: ${{ env.CACHE_FROM }}
         cache-to: ${{ env.CACHE_TO }}
+
+    - name: Run lint from build image
+      run: docker run --rm simdb-dashboard:build npm run lint
+
+    - name: Run type-check from build image
+      run: docker run --rm simdb-dashboard:build npm run type-check
+
+    - name: Run unit tests from build image
+      run: docker run --rm simdb-dashboard:build npm run test:unit -- --run
 
     - name: Build service image
       uses: docker/build-push-action@v7

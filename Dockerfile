@@ -10,14 +10,6 @@ FROM builder AS dev
 EXPOSE 5173
 CMD ["sh", "-c", "[ -x node_modules/.bin/vite ] || npm ci; npm run dev -- --host 0.0.0.0 --port 5173"]
 
-# Lint stage: run static checks against prepared source and dependencies.
-FROM builder AS lint
-RUN npm run lint
-
-# Test stage: run unit tests against prepared source and dependencies.
-FROM builder AS test
-RUN npm run test:unit -- --run
-
 # Build stage: compile production-ready frontend assets.
 FROM builder AS build
 ARG APP_VERSION=0.0.0-unknown
