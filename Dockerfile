@@ -28,5 +28,6 @@ LABEL org.opencontainers.image.title="SimDB Dashboard" \
 COPY docker/dashboard.nginx /etc/nginx/templates/default.conf.template
 # App expects itself at urlpath /dashboard
 COPY --from=build /app/dist /usr/share/nginx/html/dashboard
-EXPOSE 8080
+# NOTE: nginx base image already exposes port 80:
+EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

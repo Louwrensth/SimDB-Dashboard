@@ -17,7 +17,7 @@ services:
       # access via nginx proxy at location DASHBOARD_HOST:DASHBOARD_PORT/scenarios/api
       PUBLIC_SIMDB_HOST: ${PUBLIC_SIMDB_HOST:-DASHBOARD_HOST}
     ports:
-      - "${DASHBOARD_PORT:-80}:8080"
+      - "${DASHBOARD_PORT:-80}:80"
     volumes:
       - ./docker/proxy_params:/etc/nginx/proxy_params
       - ./docker/dashboard.nginx:/etc/nginx/templates/default.conf.template
