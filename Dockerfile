@@ -18,6 +18,13 @@ RUN npm run build
 
 # Service stage: serve compiled static assets with nginx.
 FROM nginx:1.27-alpine AS service
+ARG APP_VERSION=0.0.0-unknown
+LABEL org.opencontainers.image.title="SimDB Dashboard" \
+      org.opencontainers.image.description="Web frontend for the SimDB simulation management tool" \
+      org.opencontainers.image.source="https://github.com/iterorganization/SimDB-Dashboard" \
+      org.opencontainers.image.licenses="LGPL-3.0-only" \
+      org.opencontainers.image.version="${APP_VERSION}" \
+      io.simdb.component="dashboard"
 COPY docker/dashboard.nginx /etc/nginx/templates/default.conf.template
 # App expects itself at urlpath /dashboard
 COPY --from=build /app/dist /usr/share/nginx/html/dashboard

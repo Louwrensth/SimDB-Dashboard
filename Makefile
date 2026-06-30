@@ -28,6 +28,8 @@ SERVICE_IMAGE := simdb-dashboard:service
 	down \
 	help \
 	lint \
+	list \
+	list-all \
 	logs-f \
 	service \
 	shell \
@@ -45,6 +47,8 @@ help:
 	@echo "Compose service (make service first):"
 	@echo "  make up              Start simdb-dashboard service using prebuilt service image"
 	@echo "  make down            Stop simdb-dashboard service"
+	@echo "  make list            List container matching the selected DASHBOARD_PORT"
+	@echo "  make list-all        List all simdb-dashboard-* containers"
 	@echo "  make logs-f          Follow logs of the started simdb-dashboard service"
 	@echo "  make shell           Enter shell in the started simdb-dashboard service"
 	@echo ""
@@ -76,6 +80,14 @@ up:
 
 down:
 	$(DOCKER_COMPOSE) down
+
+list:
+	$(DOCKER_CMD) ps \
+		--filter "label=com.docker.compose.project=$(COMPOSE_PROJECT_NAME)" \
+		--filter "label=io.simdb.component=dashboard"
+
+list-all:
+	$(DOCKER_CMD) ps --filter "label=io.simdb.component=dashboard"
 
 logs-f:
 	$(DOCKER_COMPOSE) logs -f

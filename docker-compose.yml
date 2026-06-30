@@ -1,6 +1,8 @@
 services:
   dashboard:
     image: simdb-dashboard:service
+    labels:
+      io.simdb.component: "dashboard"
     build: 
       context: .
       args:
