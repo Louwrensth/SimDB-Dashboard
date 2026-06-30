@@ -21,6 +21,6 @@ services:
     volumes:
       - ./docker/proxy_params:/etc/nginx/proxy_params
       - ./docker/dashboard.nginx:/etc/nginx/templates/default.conf.template
-      - ./docker/runtime-config-template.js:/usr/share/nginx/html/runtime-config-template.js
+      # - ./docker/runtime-config-template.js:/usr/share/nginx/html/runtime-config-template.js
     extra_hosts:
       - "host.docker.internal:host-gateway"

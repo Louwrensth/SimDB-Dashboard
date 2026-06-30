@@ -1,13 +1,13 @@
-const dev_backend_api_url = `http://${window.location.hostname}:5000`;
+const dashboard_internal = `/scenarios/api`;
 
 window.__SIMDB_RUNTIME_CONFIG__ = {
   // Required runtime settings loaded by index.html.
   // This file is overwritten at docker-compose time for production and testing purposes.
   servers: [
-    dev_backend_api_url,
+    dashboard_internal,
   ],
-  defaultServer: dev_backend_api_url,
+  defaultServer: dashboard_internal,
   serverConfig: {
-    [dev_backend_api_url]: { requiresAuth: false }
+    [dashboard_internal]: { requiresAuth: false },
   }
 };
