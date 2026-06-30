@@ -95,7 +95,7 @@ const quantitiesName = function (item: string) {
   return name[item]
 }
 
-const shouldShow = ref(false);
+const shouldShow = servers.length > 1
 
 onMounted(() => {
   let params = new URLSearchParams(window.location.search);
@@ -312,7 +312,7 @@ function displayError(message: string) {
 
 <template>
   <div>
-    <!-- <v-row dense>
+    <v-row dense>
       <v-col cols="12" v-if="shouldShow">
         <v-select
           filled
@@ -323,7 +323,7 @@ function displayError(message: string) {
           @update:model-value="setItems"
         ></v-select>
       </v-col>
-    </v-row> -->
+    </v-row>
     <v-row dense>
       <v-col cols="12">
         <v-alert variant="text" :value="status.show" :type="status.type">{{ status.text }}</v-alert>
