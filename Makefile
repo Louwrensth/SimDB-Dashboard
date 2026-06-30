@@ -1,6 +1,11 @@
 SHELL := /bin/sh
 
 VERSION ?= $(shell git describe --tags --always 2>/dev/null || echo 0.0.0-unknown)
+DASHBOARD_PORT ?= 80
+COMPOSE_PROJECT_NAME ?= simdb-dashboard-$(DASHBOARD_PORT)
+
+export DASHBOARD_PORT
+export COMPOSE_PROJECT_NAME
 
 DOCKER_CMD ?= docker
 DOCKER_BUILD ?= $(DOCKER_CMD) build --build-arg APP_VERSION="$(VERSION)"
