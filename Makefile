@@ -71,8 +71,8 @@ help:
 	@echo "  make deploy          Deploy project (placeholder)"
 	@echo ""
 	@echo "Environment variable examples:"
-	@echo "  Start simdb-dashboard service on alternative port:"
-	@echo "    DASHBOARD_PORT=18080 make up"
+	@echo "  Start simdb-dashboard at alternative DASHBOARD_PORT, with simdb server at API_PORT:"
+	@echo "    DASHBOARD_PORT=8080 API_PORT=5100 make up"
 
 # Compose targets
 up:
@@ -135,7 +135,7 @@ dist: build
 	$(DOCKER_CMD) rm tmp_dist_container >/dev/null
 
 update-base:
-	$(DOCKER_BUILD) --pull --target service -t $(SERVICE_IMAGE) .
+	$(DOCKER_BUILD) --no-cache --pull --target service -t $(SERVICE_IMAGE) .
 
 update-deps: dashboard/package-lock.json
 
