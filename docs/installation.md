@@ -40,17 +40,15 @@ make service
 make up
 ```
 
-3. Open the dashboard:
+3. Open the dashboard: http://localhost:80/dashboard/
 
-```text
-http://localhost:80/dashboard/
-```
-
-Stop the service when needed:
+4. Stop the service when needed:
 
 ```sh
 make down
 ```
+
+## Adjusting the installation
 
 Did something change in the `docker-compose.yml` or `docker/*` files? Stop the service, and restart service (rebuild not necessary):
 
@@ -66,29 +64,25 @@ make down service up
 
 Notes:
 
-- `make up` starts Compose using the prebuilt `simdb-dashboard:service` image.
-- Requests under `/api/` are proxied by nginx to a backend expected at
-  `host.docker.internal:5000`.
-- You can restart and change the host port with `DASHBOARD_PORT`, for example:
+- Requests under `/scenarios/api/` are proxied by nginx to a simdb server expected at `API_HOST:API_PORT` (defaults to `host.docker.internal:5000`).
+- You can start multiple dashboards if you change the host port with `DASHBOARD_PORT`.
+- Use `PUBLIC_SIMDB_URL` or edit `docker\runtime-config-template.js` for adjusting the simdb server:
 
 ```sh
-DASHBOARD_PORT=8080 make down up
+DASHBOARD_PORT=8080 make up
+DASHBOARD_PORT=8081 API_PORT=5001 make up
+DASHBOARD_PORT=8082 API_HOST=172.20.0.1 API_PORT=5001 make up
+PUBLIC_SIMDB_URL=https://simdb.iter.org/scenarios/api make up
 ```
 
-- You can change the (internal proxy address of the) SimDB server host and port with `API_HOST` and/or `API_PORT` (default is host.docker.internal:5000), for example:
+- Additional conveniences are:
 
 ```sh
-DASHBOARD_PORT=8081 API_PORT=5001 make down up
-DASHBOARD_PORT=8082 API_HOST=172.20.0.1 API_PORT=5001 make down up
+make list-all  # list all running dashboard containers
+DASHBOARD_PORT=8081 make list      # list container for the selected container
+DASHBOARD_PORT=8081 make logs-f    # follow compose logs for the selected container
+DASHBOARD_PORT=8081 make shell     # open sh inside running dashboard container
 ```
-
-- Instead of using the proxy to reach the SimDB server, you can have the Dashboard interact with the SimDB server directly on a public host with `PUBLIC_SIMDB_HOST` (default is to use the implicit `DASHBOARD_HOST`), for example:
-
-```sh
-PUBLIC_SIMDB_HOST=simdb.iter.org API_PORT=5000 make down up
-```
-
-But, if you got to this point it might be better to modify `docker/runtime-config-template.js` directly.
 
 ## Static artifact installation (non-Compose nginx deployments)
 
@@ -130,6 +124,7 @@ This is required for client-side routes under `/dashboard/*`.
 Use Makefile targets for quality checks and updates:
 
 ```sh
+make build        # build image for lint/type-check/test
 make lint         # run lint checks against the build image
 make type-check   # run TypeScript type checks against the build image
 make test         # run unit tests against the build image
@@ -137,4 +132,3 @@ make update-base  # rebuild service image pulling latest base images
 make update-deps  # refresh package-lock and apply npm audit fixes
 make distclean    # remove local images/artifacts and compose runtime state
 ```
-
