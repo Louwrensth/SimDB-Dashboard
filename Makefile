@@ -7,6 +7,7 @@ COMPOSE_PROJECT_NAME ?= simdb-dashboard-$(DASHBOARD_PORT)
 export DASHBOARD_PORT
 export COMPOSE_PROJECT_NAME
 
+# On Windows? Git Bash + Podman tip: use `make DOCKER_CMD="MSYS_NO_PATHCONV=1 podman" <target>`.
 DOCKER_CMD ?= docker
 DOCKER_BUILD ?= $(DOCKER_CMD) build --build-arg APP_VERSION="$(VERSION)"
 DOCKER_COMPOSE ?= APP_VERSION="$(VERSION)" $(DOCKER_CMD) compose
