@@ -64,7 +64,8 @@ help:
 	@echo "  make version         Show git-derived application version"
 	@echo ""
 	@echo "Artifacts and maintenance:"
-	@echo "  make dist            Save static app/dist artifact from $(BUILD_IMAGE) to ./dist"
+	@echo "  make simdb-dashboard-service.tar    Export runnable service image"
+	@echo "  make dist            Export Single Page Application artifact to ./dist/"
 	@echo "  make update-base     Rebuild service image pulling latest base images"
 	@echo "  make update-deps     Update npm lockfile and audit-fix deps via Docker"
 	@echo "  make distclean       Remove local artifacts and compose runtime state"
@@ -133,6 +134,13 @@ dist: build
 	$(DOCKER_CMD) create --name tmp_dist_container $(BUILD_IMAGE) >/dev/null
 	$(DOCKER_CMD) cp tmp_dist_container:/app/dist/. ./dist
 	$(DOCKER_CMD) rm tmp_dist_container >/dev/null
+
+simdb-dashboard-service.tar: service
+	$(DOCKER_CMD) save -o simdb-dashboard-service.tar $(SERVICE_IMAGE)
+	@echo "Service image exported: simdb-dashboard-service.tar"
+	@echo "To load and run the image:"
+	@echo "  docker load -i simdb-dashboard-service.tar"
+	@echo "  docker run --rm -p 8080:80 --add-host host.docker.internal:host-gateway simdb-dashboard:service"
 
 update-base:
 	$(DOCKER_BUILD) --no-cache --pull --target service -t $(SERVICE_IMAGE) .

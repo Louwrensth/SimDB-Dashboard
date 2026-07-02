@@ -105,6 +105,23 @@ sudo cp -r dist/* /www/data/
 With the Dockerfile defaults, assets are served under `/dashboard`, so the final
 index path should be `/www/data/dashboard/index.html`.
 
+## Exporting a runnable service image tar (non-Compose)
+
+If you want a portable Docker image artifact (similar to CI artifacts), use:
+
+```sh
+make simdb-dashboard-service.tar
+```
+
+This creates `simdb-dashboard-service.tar` at the repository root.
+
+Load and run it on a target machine:
+
+```sh
+docker load -i simdb-dashboard-service.tar
+docker run --rm -p 8080:80 --add-host host.docker.internal:host-gateway simdb-dashboard:service
+```
+
 ## nginx configuration
 
 Use a location block that falls back to the SPA entry point:
