@@ -66,6 +66,24 @@ jobs:
         cache-from: ${{ env.CACHE_FROM }}
         cache-to: ${{ env.CACHE_TO }}
 
+    - name: Smoke test service image runtime config
+      run: |
+        docker run -d --rm --name simdb-dashboard-smoke -p 8080:80 \
+          --add-host host.docker.internal:host-gateway \
+          simdb-dashboard:service
+        trap 'docker rm -f simdb-dashboard-smoke >/dev/null 2>&1 || true' EXIT
+
+        for i in $(seq 1 30); do
+          if curl -fsS http://localhost:8080/dashboard/runtime-config.js >/tmp/runtime-config.js; then
+            break
+          fi
+          sleep 1
+        done
+
+        curl -fsS http://localhost:8080/dashboard/runtime-config.js >/tmp/runtime-config.js
+        grep -q "window.__SIMDB_RUNTIME_CONFIG__" /tmp/runtime-config.js
+        ! grep -q "SIMDB_SERVER_URL" /tmp/runtime-config.js
+
     - name: Extract static dist assets
       run: |
         rm -rf "${{ runner.temp }}/dist"
