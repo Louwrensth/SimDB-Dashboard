@@ -19,6 +19,12 @@ RUN npm run build
 # Service stage: serve compiled static assets with nginx.
 FROM nginx:1.27-alpine AS service
 ARG APP_VERSION=0.0.0-unknown
+# Set sensible defaults so standalone image can run without Compose.
+# These can be overridden at docker run time via -e flag.
+ENV SIMDB_SERVER_URL=/scenarios/api \
+    API_HOST=host.docker.internal \
+    API_PORT=5000 \
+    DASHBOARD_PORT=80
 LABEL org.opencontainers.image.title="SimDB Dashboard" \
       org.opencontainers.image.description="Web frontend for the SimDB simulation management tool" \
       org.opencontainers.image.source="https://github.com/iterorganization/SimDB-Dashboard" \
@@ -26,6 +32,7 @@ LABEL org.opencontainers.image.title="SimDB Dashboard" \
       org.opencontainers.image.version="${APP_VERSION}" \
       io.simdb.component="dashboard"
 COPY docker/dashboard.nginx /etc/nginx/templates/default.conf.template
+COPY docker/runtime-config-template.js /usr/share/nginx/html/runtime-config-template.js
 # App expects itself at urlpath /dashboard
 COPY --from=build /app/dist /usr/share/nginx/html/dashboard
 # NOTE: nginx base image already exposes port 80:
