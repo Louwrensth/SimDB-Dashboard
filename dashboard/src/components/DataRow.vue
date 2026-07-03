@@ -44,9 +44,11 @@ type ApiResult = {
 
 const fetchedValue = ref<ApiResult | null>(null)
 const isFetching = ref(false)
+const fetchError = ref<string | null>(null)
+let currentAbortController: AbortController | null = null
 
-/** Convert dot-notation metadata key → summary IDS slash-path.
- *  "global_quantities.ip.value"         → "summary/global_quantities/ip/value"
+/** metadata keys are stored in the database as dot-separated strings, 
+ *  and without summary prefix(ids)
  */
 function toDataPath(metaName: string): string {
   const name = metaName.startsWith('summary.') ? metaName.substring(8) : metaName
@@ -55,15 +57,24 @@ function toDataPath(metaName: string): string {
 
 async function fetchData() {
   if (!props.simId || !props.server) return
+
+  // abort any in-flight request before starting a new one
+  if (currentAbortController) currentAbortController.abort()
+  currentAbortController = new AbortController()
+  const signal = currentAbortController.signal
+
   isFetching.value = true
+  fetchError.value = null
   fetchedValue.value = null
   try {
     const url = `${props.server}/v${config.api_version}/simulation/${props.simId}/data?path=${encodeURIComponent(toDataPath(props.meta_name))}&dd_version=4.1.1`
-    const resp = await fetch(url)
+    const resp = await fetch(url, { signal })
     if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`)
     fetchedValue.value = await resp.json()
-  } catch {
-    // Keep displaying the metadata value when this path has no data.
+  } catch (err: any) {
+    if (err?.name === 'AbortError') return 
+    // Show fetch errors from the simdb server
+    fetchError.value = err instanceof Error ? err.message : 'Failed to load data'
   } finally {
     isFetching.value = false
   }
@@ -140,6 +151,24 @@ function processValue(value: any) {
     }
   }
   return value
+}
+
+function isNumpyMetadataArray(): boolean {
+  return !!(
+    props.value &&
+    typeof props.value === 'object' &&
+    '_type' in props.value &&
+    (props.value as NumpyValue)._type === 'numpy.ndarray'
+  )
+}
+
+function isRangeValue(): boolean {
+  return !!(
+    props.value &&
+    typeof props.value === 'object' &&
+    'min' in props.value &&
+    'max' in props.value
+  )
 }
 
 function isXML() {
@@ -219,13 +248,14 @@ watch(
           </v-card>
         </template>
         <template v-else-if="isArray()">
-          <span style="white-space: pre-wrap">{{ processValue(value) }}</span>
+          <!-- only render text for range values; numpy arrays are shown via the plot below -->
+          <span v-if="isRangeValue()" style="white-space: pre-wrap">{{ processValue(value) }}</span>
         </template>
         <template v-else-if="isUUID()">
           <a :href="'/' + config.prefix + '/uuid/' + getHex(value)" :title="getHex(value)">{{ getHex(value) }}</a>
         </template>
         <template v-else-if="isShortString()">
-          <a :href="'/' + config.prefix + '?__server=' + server + '&' + meta_name + '=eq:' + value">{{
+          <a :href="'/' + config.prefix + '/?__server=' + server + '&' + meta_name + '=eq:' + value">{{
             processValue(value)
           }}</a>
         </template>
@@ -242,6 +272,8 @@ watch(
           :ylabel="getFieldLabel()"
           :xlabel="getCoordinateLabel()"
         ></PlotlyLoader>
+        <!-- show fetch error -->
+        <span v-if="fetchError" class="text-error text-caption ml-1" :title="fetchError">data is unavailable</span>
         <v-progress-circular
           v-if="isFetching"
           class="ml-2"
