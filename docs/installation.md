@@ -48,9 +48,38 @@ make up
 make down
 ```
 
+## HTTPS installation workflow (Docker image + Compose override)
+
+The repository also includes an HTTPS-specific Docker stage and a Compose override in `docker-compose-https.yml`.
+
+1. Provide TLS certificate files at `docker/nginx/ssl/cert.crt` and `docker/nginx/ssl/cert.key`.
+
+2. Build the HTTPS service image:
+
+```sh
+USE_HTTPS=1 make service
+```
+
+3. Start the dashboard with the HTTPS override:
+
+```sh
+USE_HTTPS=1 make up
+```
+
+4. Open the dashboard:
+
+- HTTP: http://localhost:80/dashboard/ (redirects to https)
+- HTTPS: https://localhost:443/dashboard/
+
+5. Stop the HTTPS service when needed:
+
+```sh
+USE_HTTPS=1 make down
+```
+
 ## Adjusting the installation
 
-Did something change in the `docker-compose.yml` or `docker/*` files? Stop the service, and restart service (rebuild not necessary):
+Did something change in the `docker-compose.yml`, `docker-compose-https.yml`, or `docker/*` files? Stop the service, and restart service (rebuild not necessary):
 
 ```sh
 make down up
@@ -66,12 +95,16 @@ Notes:
 
 - Requests under `/scenarios/api/` are proxied by nginx to a simdb server expected at `API_HOST:API_PORT` (defaults to `host.docker.internal:5000`).
 - You can start multiple dashboards if you change the host port with `DASHBOARD_PORT`.
+- The HTTPS compose override also publishes `DASHBOARD_HTTPS_PORT` (default `443`) and switches `SERVER_CONF` to `server-https.conf`.
+- `docker-compose-https.yml` reuses the base `docker-compose.yml`; environment variables from the base file are inherited, and override entries only add new variables or replace matching keys such as `SERVER_CONF`.
+- Set `USE_HTTPS=1` to switch shared Make targets such as `up`, `down`, `logs-f`, and `shell` to the HTTPS compose chain.
 - Use `PUBLIC_SIMDB_URL` or edit `docker\nginx\templates\snippets\runtime-config-template.js` for adjusting the simdb server:
 
 ```sh
 DASHBOARD_PORT=8080 make up
 DASHBOARD_PORT=8081 API_PORT=5001 make up
 DASHBOARD_PORT=8082 API_HOST=172.20.0.1 API_PORT=5001 make up
+DASHBOARD_PORT=8080 DASHBOARD_HTTPS_PORT=8443 USE_HTTPS=1 make up
 PUBLIC_SIMDB_URL=https://simdb.iter.org/scenarios/api make up
 ```
 
@@ -82,6 +115,8 @@ make list-all  # list all running dashboard containers
 DASHBOARD_PORT=8081 make list      # list container for the selected container
 DASHBOARD_PORT=8081 make logs-f    # follow compose logs for the selected container
 DASHBOARD_PORT=8081 make shell     # open sh inside running dashboard container
+DASHBOARD_PORT=8081 USE_HTTPS=1 make logs-f  # follow HTTPS compose logs
+DASHBOARD_PORT=8081 USE_HTTPS=1 make shell   # open sh inside HTTPS container
 ```
 
 ## Static artifact installation (non-Compose nginx deployments)

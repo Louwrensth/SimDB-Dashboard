@@ -4,16 +4,27 @@ VERSION ?= $(shell git describe --tags --always 2>/dev/null || echo 0.0.0-unknow
 DASHBOARD_PORT ?= 80
 COMPOSE_PROJECT_NAME ?= simdb-dashboard-$(DASHBOARD_PORT)
 
+ifeq ($(USE_HTTPS),1)
+DASHBOARD_HTTPS_PORT ?= 443
+export DASHBOARD_HTTPS_PORT
+COMPOSE_FILE ?= docker-compose.yml:docker-compose-https.yml
+SERVICE_IMAGE := simdb-dashboard:service-https
+SERVICE_TARGET := service-https
+else
+COMPOSE_FILE ?= docker-compose.yml
+SERVICE_IMAGE := simdb-dashboard:service
+SERVICE_TARGET := service
+endif
+
 export DASHBOARD_PORT
 export COMPOSE_PROJECT_NAME
 
 DOCKER_CMD ?= docker
 DOCKER_BUILD ?= $(DOCKER_CMD) build --build-arg APP_VERSION="$(VERSION)"
-DOCKER_COMPOSE ?= APP_VERSION="$(VERSION)" $(DOCKER_CMD) compose
+DOCKER_COMPOSE ?= APP_VERSION="$(VERSION)" COMPOSE_FILE="$(COMPOSE_FILE)" $(DOCKER_CMD) compose
 
 BUILD_IMAGE := simdb-dashboard:build
 DEV_IMAGE := simdb-dashboard:dev
-SERVICE_IMAGE := simdb-dashboard:service
 
 .DEFAULT_GOAL := service
 
@@ -52,6 +63,13 @@ help:
 	@echo "  make logs-f          Follow logs of the started simdb-dashboard service"
 	@echo "  make shell           Enter shell in the started simdb-dashboard service"
 	@echo ""
+	@echo "HTTPS toggle (set USE_HTTPS=1):"
+	@echo "  USE_HTTPS=1 make service   Build HTTPS service stage and tag simdb-dashboard:service-https"
+	@echo "  USE_HTTPS=1 make up        Start dashboard with docker-compose-https.yml override"
+	@echo "  USE_HTTPS=1 make down      Stop dashboard started with the HTTPS compose override"
+	@echo "  USE_HTTPS=1 make logs-f    Follow logs of the HTTPS compose service"
+	@echo "  USE_HTTPS=1 make shell     Enter shell in the started HTTPS compose service"
+	@echo ""
 	@echo "Dockerfile stage targets:"
 	@echo "  make builder         Build builder stage (dependency setup + source prep)"
 	@echo "  make build           Build application build stage and tag $(BUILD_IMAGE)"
@@ -74,6 +92,8 @@ help:
 	@echo "Environment variable examples:"
 	@echo "  Start simdb-dashboard at alternative DASHBOARD_PORT, with simdb server at API_PORT:"
 	@echo "    DASHBOARD_PORT=8080 API_PORT=5100 make up"
+	@echo "  Start HTTPS dashboard with alternative HTTP/HTTPS host ports:"
+	@echo "    DASHBOARD_PORT=8080 DASHBOARD_HTTPS_PORT=8443 USE_HTTPS=1 make up"
 
 # Compose targets
 up:
@@ -105,7 +125,7 @@ build:
 	$(DOCKER_BUILD) --target build -t $(BUILD_IMAGE) .
 
 service:
-	$(DOCKER_BUILD) --target service -t $(SERVICE_IMAGE) .
+	$(DOCKER_BUILD) --target $(SERVICE_TARGET) -t $(SERVICE_IMAGE) .
 
 # Developer utilities
 lint:
@@ -153,8 +173,9 @@ dashboard/package-lock.json: dashboard/package.json
 		"npm install --package-lock-only && npm audit fix && npm list"
 
 distclean:
-	$(DOCKER_COMPOSE) down --volumes --remove-orphans --rmi local
-	$(DOCKER_CMD) rmi -f $(BUILD_IMAGE) $(SERVICE_IMAGE) >/dev/null 2>&1 || true
+	APP_VERSION="$(VERSION)" COMPOSE_FILE="docker-compose.yml" $(DOCKER_CMD) compose down --volumes --remove-orphans --rmi local
+	APP_VERSION="$(VERSION)" COMPOSE_FILE="docker-compose.yml:docker-compose-https.yml" $(DOCKER_CMD) compose down --volumes --remove-orphans --rmi local
+	$(DOCKER_CMD) rmi -f $(BUILD_IMAGE) simdb-dashboard:service simdb-dashboard:service-https >/dev/null 2>&1 || true
 	$(DOCKER_CMD) volume rm -f simdb_dashboard_node_modules >/dev/null 2>&1 || true
 	rm -rf dist
 
