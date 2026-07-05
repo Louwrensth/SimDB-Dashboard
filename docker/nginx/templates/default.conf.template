@@ -1,0 +1,20 @@
+# Relies on official nginx image default behavior: /etc/nginx/templates/*.template
+# are envsubst-processed into /etc/nginx/conf.d at container startup.
+# See: https://github.com/docker-library/docs/tree/master/nginx
+
+# Hostnames inside upstream blocks are resolved at config-load time using the
+# system resolver, which does read /etc/hosts.
+upstream simdb_backend {
+    server ${API_HOST}:${API_PORT};
+}
+
+server {
+    listen 80;
+    # listen [::]:80;
+    server_name _;
+    root /usr/share/nginx/html;
+    absolute_redirect off;
+
+    include /etc/nginx/conf.d/snippets/dashboard.conf;
+    include /etc/nginx/conf.d/snippets/simdb_proxy.conf;
+}

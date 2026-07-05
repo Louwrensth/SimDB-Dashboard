@@ -66,7 +66,7 @@ Notes:
 
 - Requests under `/scenarios/api/` are proxied by nginx to a simdb server expected at `API_HOST:API_PORT` (defaults to `host.docker.internal:5000`).
 - You can start multiple dashboards if you change the host port with `DASHBOARD_PORT`.
-- Use `PUBLIC_SIMDB_URL` or edit `docker\runtime-config-template.js` for adjusting the simdb server:
+- Use `PUBLIC_SIMDB_URL` or edit `docker\nginx\templates\snippets\runtime-config-template.js` for adjusting the simdb server:
 
 ```sh
 DASHBOARD_PORT=8080 make up

@@ -31,8 +31,7 @@ LABEL org.opencontainers.image.title="SimDB Dashboard" \
       org.opencontainers.image.licenses="LGPL-3.0-only" \
       org.opencontainers.image.version="${APP_VERSION}" \
       io.simdb.component="dashboard"
-COPY docker/dashboard.nginx /etc/nginx/templates/default.conf.template
-COPY docker/runtime-config-template.js /usr/share/nginx/html/runtime-config-template.js
+COPY docker/nginx/templates/ /etc/nginx/templates/
 # App expects itself at urlpath /dashboard
 COPY --from=build /app/dist /usr/share/nginx/html/dashboard
 # NOTE: nginx base image already exposes port 80:
