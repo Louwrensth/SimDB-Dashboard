@@ -1,84 +1,148 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
-
 name: CI/CD Pipeline
 
+env:
+  CACHE_FROM: type=gha,scope=simdb-dashboard
+  CACHE_TO: type=gha,mode=max,scope=simdb-dashboard
+
 on:
+  # Triggers on pushes to develop, on pushed tags, and on pull requests targeting develop.
   push:
     branches: [ "develop" ]
+    tags: [ "*" ]
   pull_request:
     branches: [ "develop" ]
 
 jobs:
-  test:
-    name: Test and Lint
-    runs-on: ubuntu-22.04
-
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x, 22.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v7
-    
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v6
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-        cache-dependency-path: dashboard/package-lock.json
-
-    - name: Install dependencies
-      run: |
-        cd dashboard
-        npm ci
-        
-    - name: Run linter
-      run: |
-        cd dashboard
-        npm run lint
-        
-    - name: Run type check
-      run: |
-        cd dashboard
-        npm run type-check        
-        
-    - name: Upload coverage reports
-      uses: codecov/codecov-action@v7
-      with:
-        directory: ./dashboard/coverage
-
   build:
-    name: Build Application
-    runs-on: ubuntu-22.04
-    needs: test
-    
+    name: Build, verify, and package
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.value }}
+    permissions:
+      contents: read
     steps:
     - name: Checkout code
       uses: actions/checkout@v7
-      
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v6
       with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-        cache-dependency-path: dashboard/package-lock.json
-        
-    - name: Install dependencies
+        fetch-tags: true
+        fetch-depth: 0
+
+    - name: Get version
+      id: version
+      run: echo "value=$(git describe --tags --always 2>/dev/null || echo 0.0.0-unknown)" >> "$GITHUB_OUTPUT"
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v4
+
+    # APP_VERSION is embedded into the static assets at build time
+    - name: Build build target image
+      uses: docker/build-push-action@v7
+      with:
+        target: build
+        load: true
+        tags: simdb-dashboard:build
+        build-args: APP_VERSION=${{ steps.version.outputs.value }}
+        cache-from: ${{ env.CACHE_FROM }}
+        cache-to: ${{ env.CACHE_TO }}
+
+    - name: Run lint from build image
+      run: docker run --rm simdb-dashboard:build npm run lint
+
+    - name: Run type-check from build image
+      run: docker run --rm simdb-dashboard:build npm run type-check
+
+    - name: Run unit tests from build image
+      run: docker run --rm simdb-dashboard:build npm run test:unit -- --run
+
+    - name: Build service image
+      uses: docker/build-push-action@v7
+      with:
+        target: service
+        load: true
+        tags: simdb-dashboard:service
+        build-args: APP_VERSION=${{ steps.version.outputs.value }}
+        cache-from: ${{ env.CACHE_FROM }}
+        cache-to: ${{ env.CACHE_TO }}
+
+    - name: Smoke test service image runtime config
       run: |
-        cd dashboard
-        npm ci
-        
-    - name: Build application
+        docker run -d --rm --name simdb-dashboard-smoke -p 8080:80 \
+          --add-host host.docker.internal:host-gateway \
+          simdb-dashboard:service
+        trap 'docker rm -f simdb-dashboard-smoke >/dev/null 2>&1 || true' EXIT
+
+        for i in $(seq 1 30); do
+          if curl -fsS http://localhost:8080/dashboard/runtime-config.js >/tmp/runtime-config.js; then
+            break
+          fi
+          sleep 1
+        done
+
+        curl -fsS http://localhost:8080/dashboard/runtime-config.js >/tmp/runtime-config.js
+        grep -q "window.__SIMDB_RUNTIME_CONFIG__" /tmp/runtime-config.js
+        ! grep -q "SIMDB_SERVER_URL" /tmp/runtime-config.js
+
+    - name: Extract static dist assets
       run: |
-        cd dashboard
-        npm run build
-        
-    - name: Upload build artifacts
+        rm -rf "${{ runner.temp }}/dist"
+        mkdir -p "${{ runner.temp }}/dist"
+        docker rm -f tmp_dist_container >/dev/null 2>&1 || true
+        docker create --name tmp_dist_container simdb-dashboard:build >/dev/null
+        docker cp tmp_dist_container:/app/dist/. "${{ runner.temp }}/dist"
+        docker rm tmp_dist_container >/dev/null
+
+    - name: Upload static assets artifact
       uses: actions/upload-artifact@v7
       with:
-        name: dist
-        path: dashboard/dist/
-        retention-days: 7        
+        name: simdb-dashboard-dist
+        path: ${{ runner.temp }}/dist/
+        retention-days: 7
+
+    - name: Export service image tar
+      run: docker save -o "${{ runner.temp }}/simdb-dashboard-service.tar" simdb-dashboard:service
+
+    - name: Upload service image artifact
+      uses: actions/upload-artifact@v7
+      with:
+        name: simdb-dashboard-service
+        path: ${{ runner.temp }}/simdb-dashboard-service.tar
+        retention-days: 7
+
+  publish:
+    name: Publish service image
+    # Runs only for push events (branch/tag pushes), and is skipped for pull_request events.
+    if: ${{ github.event_name == 'push' }}
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      contents: read
+      packages: write
+    steps:
+    - name: Lowercase repo-owner
+      id: repo_owner
+      run: echo "value=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
+
+    - name: Download service image artifact
+      uses: actions/download-artifact@v8
+      with:
+        name: simdb-dashboard-service
+        path: ${{ runner.temp }}
+
+    - name: Load service image
+      run: docker load -i "${{ runner.temp }}/simdb-dashboard-service.tar"
+
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v4
+      with:
+        registry: ghcr.io
+        username: ${{ steps.repo_owner.outputs.value }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Tag service image for registry
+      run: |
+        docker tag \
+          simdb-dashboard:service \
+          ghcr.io/${{ steps.repo_owner.outputs.value }}/simdb-dashboard:service-${{ needs.build.outputs.version }}
+
+    - name: Push service image
+      run: docker push ghcr.io/${{ steps.repo_owner.outputs.value }}/simdb-dashboard:service-${{ needs.build.outputs.version }}

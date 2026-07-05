@@ -1,5 +1,6 @@
 import { fileURLToPath, URL } from 'node:url'
 import { execSync } from 'child_process'
+import { readFileSync } from 'node:fs'
 
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
@@ -19,7 +20,23 @@ function getVersionFromGit() {
 
     return version
   } catch (error) {
-    console.warn('⚠️  Could not get version from git, using fallback')
+    console.warn('⚠️  Could not get version from git, trying .app-version')
+    return getVersionFromFile()
+  }
+}
+
+function getVersionFromFile() {
+  try {
+    const version = readFileSync('.app-version', { encoding: 'utf-8' }).trim()
+    if (!version) {
+      throw new Error('.app-version is empty')
+    }
+
+    console.log(`📦 Building SimDB Dashboard ${version} (from .app-version)`)
+    return version
+  } catch (error) {
+    console.warn(`caught error ${error}`)
+    console.warn('⚠️  Could not read .app-version, using fallback')
     return '0.0.0-unknown'
   }
 }
