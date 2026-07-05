@@ -1,0 +1,16 @@
+# HTTPS override for docker-compose.yml.
+# Reuses the base dashboard service definition and only adds or overrides SSL-specific settings.
+services:
+  dashboard:
+    image: simdb-dashboard:service-https
+    build:
+      target: service-https
+    environment:
+      # Use server-https.conf when SSL certificates (cert.crt and cert.key) are provided.
+      SERVER_CONF: ${SERVER_CONF:-server-https.conf}
+    ports:
+      - "${DASHBOARD_PORT:-80}:80"
+      - "${DASHBOARD_HTTPS_PORT:-443}:443"
+    volumes:
+      - ./docker/nginx/templates:/etc/nginx/templates
+      - ./docker/nginx/ssl:/etc/nginx/ssl:ro

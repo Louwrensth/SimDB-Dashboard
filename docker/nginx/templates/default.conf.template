@@ -8,5 +8,6 @@ upstream simdb_backend {
     server ${API_HOST}:${API_PORT};
 }
 
-# HTTP server block
-include /etc/nginx/conf.d/snippets/server-http.conf;
+# Server block include is selected at startup by /docker-entrypoint.d/25-select-server-conf.sh
+# using SERVER_CONF (default: server-http.conf).
+include /etc/nginx/conf.d/snippets/server.conf;
