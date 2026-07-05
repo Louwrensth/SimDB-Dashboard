@@ -5,6 +5,6 @@ server {
     root /usr/share/nginx/html;
     absolute_redirect off;
 
-    include /etc/nginx/conf.d/snippets/dashboard.conf;
-    include /etc/nginx/conf.d/snippets/simdb_proxy.conf;
+    include /etc/nginx/conf.d/snippets/location-dashboard.conf;
+    include /etc/nginx/conf.d/snippets/location-simdb_proxy.conf;
 }
