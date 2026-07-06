@@ -5,7 +5,6 @@ services:
       io.simdb.component: "dashboard"
     build:
       context: .
-      target: service
       args:
         APP_VERSION: ${APP_VERSION:-0.0.0-unknown}
     environment:

@@ -3,8 +3,6 @@
 services:
   dashboard:
     image: simdb-dashboard:service-https
-    build:
-      target: service-https
     environment:
       # Use server-https.conf when SSL certificates (cert.crt and cert.key) are provided.
       SERVER_CONF: ${SERVER_CONF:-server-https.conf}

@@ -9,11 +9,9 @@ DASHBOARD_HTTPS_PORT ?= 443
 export DASHBOARD_HTTPS_PORT
 COMPOSE_FILE ?= docker-compose.yml:docker-compose-https.yml
 SERVICE_IMAGE := simdb-dashboard:service-https
-SERVICE_TARGET := service-https
 else
 COMPOSE_FILE ?= docker-compose.yml
 SERVICE_IMAGE := simdb-dashboard:service
-SERVICE_TARGET := service
 endif
 
 export DASHBOARD_PORT
@@ -125,7 +123,7 @@ build:
 	$(DOCKER_BUILD) --target build -t $(BUILD_IMAGE) .
 
 service:
-	$(DOCKER_BUILD) --target $(SERVICE_TARGET) -t $(SERVICE_IMAGE) .
+	$(DOCKER_BUILD) --target service -t $(SERVICE_IMAGE) .
 
 # Developer utilities
 lint:

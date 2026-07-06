@@ -14,9 +14,7 @@ location = /dashboard/runtime-config.js {
     sub_filter_once off;
     sub_filter_types application/javascript;
     # Optional tokens to replace in template:
-    sub_filter 'SCHEME' '$scheme';
     sub_filter 'SIMDB_SERVER_URL' '${SIMDB_SERVER_URL}';
-    sub_filter 'DASHBOARD_PORT' '${DASHBOARD_PORT}';
     sub_filter 'API_HOST' '${API_HOST}';
     sub_filter 'API_PORT' '${API_PORT}';
 }
