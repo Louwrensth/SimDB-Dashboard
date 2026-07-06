@@ -45,4 +45,5 @@ CMD ["nginx", "-g", "daemon off;"]
 FROM service AS service-https
 ENV SERVER_CONF=server-https.conf \
     DASHBOARD_HTTPS_PORT=443
+COPY docker/nginx/ssl/ /etc/nginx/ssl/
 EXPOSE 443

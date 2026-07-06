@@ -1,7 +1,9 @@
 .git
 .github
-docs
-scripts
-node_modules
-dashboard/node_modules
 dashboard/dist
+dashboard/node_modules
+docker/nginx/ssl/*.crt
+docker/nginx/ssl/*.key
+docs
+node_modules
+scripts

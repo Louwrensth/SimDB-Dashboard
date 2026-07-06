@@ -1,4 +1,6 @@
-dist/
+.idea/
 dashboard/dist/
 dashboard/node_modules/
-.idea/
+docker/nginx/ssl/*.crt
+docker/nginx/ssl/*.key
+dist/
