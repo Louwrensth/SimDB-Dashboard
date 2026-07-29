@@ -42,6 +42,12 @@ DEV_IMAGE := simdb-dashboard:dev
 	logs-f \
 	service \
 	shell \
+	systemd-disable \
+	systemd-enable \
+	systemd-install \
+	systemd-start \
+	systemd-stop \
+	systemd-uninstall \
 	test \
 	type-check \
 	up \
@@ -86,6 +92,15 @@ help:
 	@echo "  make update-deps     Update npm lockfile and audit-fix deps via Docker"
 	@echo "  make distclean       Remove local artifacts and compose runtime state"
 	@echo "  make deploy          Deploy project (placeholder)"
+	@echo ""
+	@echo "Systemd integration (run with sudo):"
+	@echo "  sudo make systemd-install    Copy files to /opt/simdb-dashboard and /etc/simdb-dashboard"
+	@echo "  sudo make systemd-enable     systemctl daemon-reload, enable, and start the service"
+	@echo "  sudo make systemd-start      systemctl start  simdb-dashboard"
+	@echo "  sudo make systemd-stop       systemctl stop   simdb-dashboard"
+	@echo "  sudo make systemd-disable    systemctl stop && systemctl disable simdb-dashboard"
+	@echo "  sudo make systemd-uninstall  Disable, remove unit file, delete /opt/ and /etc/ files"
+	@echo "  USE_HTTPS=1 sudo make systemd-install  Include HTTPS compose override and SSL setup"
 	@echo ""
 	@echo "Environment variable examples:"
 	@echo "  Start simdb-dashboard at alternative DASHBOARD_PORT, with simdb server at API_PORT:"
@@ -176,6 +191,49 @@ distclean:
 	$(DOCKER_CMD) rmi -f $(BUILD_IMAGE) simdb-dashboard:service simdb-dashboard:service-https >/dev/null 2>&1 || true
 	$(DOCKER_CMD) volume rm -f simdb_dashboard_node_modules >/dev/null 2>&1 || true
 	rm -rf dist
+
+# Systemd integration (run with sudo)
+systemd-install:
+	mkdir -p /opt/simdb-dashboard
+	cp docker-compose.yml /opt/simdb-dashboard/
+	cp docker-compose.systemd.yml /opt/simdb-dashboard/
+	cp -r docker/nginx/templates /opt/simdb-dashboard/
+	mkdir -p /etc/simdb-dashboard
+	[ -f /etc/simdb-dashboard/simdb-dashboard.env ] || \
+		{ echo '# Created by make systemd-install' > /etc/simdb-dashboard/simdb-dashboard.env; \
+		  echo 'API_HOST=host.docker.internal' >> /etc/simdb-dashboard/simdb-dashboard.env; \
+		  echo 'SIMDB_SERVER_URL=/scenarios/api' >> /etc/simdb-dashboard/simdb-dashboard.env; }
+ifeq ($(USE_HTTPS),1)
+	cp docker-compose-https.yml /opt/simdb-dashboard/
+	mkdir -p /etc/ssl/simdb-dashboard
+	cp docker/nginx/ssl/cert.* /etc/ssl/simdb-dashboard/ 2>/dev/null || \
+		echo "  *** No certificate files found at docker/nginx/ssl/ — generate them with:"; \
+		echo "  ***   scripts/generate-self-signed-certs.sh"; \
+		echo "  ***   cp docker/nginx/ssl/cert.* /etc/ssl/simdb-dashboard/"
+	mkdir -p /opt/simdb-dashboard/docker/nginx
+	ln -sf /etc/ssl/simdb-dashboard /opt/simdb-dashboard/docker/nginx/ssl
+endif
+
+systemd-enable:
+	systemctl daemon-reload
+	systemctl enable simdb-dashboard
+	systemctl start simdb-dashboard
+
+systemd-start:
+	systemctl start simdb-dashboard
+
+systemd-stop:
+	systemctl stop simdb-dashboard
+
+systemd-disable: systemd-stop
+	systemctl disable simdb-dashboard
+
+systemd-uninstall: systemd-disable
+	rm -f /etc/systemd/system/simdb-dashboard.service
+	systemctl daemon-reload
+	rm -rf /opt/simdb-dashboard
+	rm -rf /etc/simdb-dashboard
+	[ ! -e /etc/ssl/simdb-dashboard ] || rm -rf /etc/ssl/simdb-dashboard
 
 # Deployment
 deploy:
