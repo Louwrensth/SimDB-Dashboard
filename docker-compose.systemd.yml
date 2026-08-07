@@ -13,3 +13,7 @@
 services:
   dashboard:
     image: ghcr.io/iterorganization/simdb-dashboard:${SIMDB_DASHBOARD_TAG:-service-0.9.0-68-g8819049}
+    logging:
+      driver: journald
+      options:
+        tag: simdb-dashboard

@@ -2,6 +2,11 @@
 # are envsubst-processed into /etc/nginx/conf.d at container startup.
 # See: https://github.com/docker-library/docs/tree/master/nginx
 
+# Log to container stdout/stderr so logs are visible via `docker compose logs`.
+# Change `info` to `debug` for maximum verbosity (requires nginx debug build).
+error_log /dev/stderr info;
+access_log /dev/stdout;
+
 # Hostnames inside upstream blocks are resolved at config-load time using the
 # system resolver, which does read /etc/hosts.
 upstream simdb_backend {
