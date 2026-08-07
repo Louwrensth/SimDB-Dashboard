@@ -35,7 +35,7 @@ jobs:
       uses: docker/setup-buildx-action@v4
 
     # APP_VERSION is embedded into the static assets at build time
-    - name: Build build target image
+    - name: Build build image
       uses: docker/build-push-action@v7
       with:
         target: build
