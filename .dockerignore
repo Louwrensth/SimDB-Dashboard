@@ -1,9 +1,13 @@
 .git
 .github
+.vscode
 dashboard/dist
 dashboard/node_modules
+dashboard/.vite
 docker/nginx/ssl/*.crt
 docker/nginx/ssl/*.key
 docs
+.env
+.env.*
 node_modules
 scripts
