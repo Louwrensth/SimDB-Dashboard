@@ -206,8 +206,8 @@ systemd-installdirs:
 	mkdir -p \
 		$(DESTDIR)/$(package_etcdir) \
 		$(DESTDIR)/$(package_optdir) \
-		$(DESTDIR)/$(package_optdir)/docker/templates \
-		$(DESTDIR)/$(package_optdir)/docker/templates/snippets \
+		$(DESTDIR)/$(package_optdir)/docker/nginx/ssl/ \
+		$(DESTDIR)/$(package_optdir)/docker/nginx/templates/snippets \
 		$(DESTDIR)/$(systemd_unitdir)
 
 systemd-install: systemd-installdirs
@@ -223,17 +223,21 @@ systemd-install: systemd-installdirs
 		echo "WARNING: Could not install missing cert files, see docker/nginx/ssl/*"
 	cp -r \
 		docker/nginx/templates/default.conf.template \
-		$(DESTDIR)/$(package_optdir)/docker/templates/
+		$(DESTDIR)/$(package_optdir)/docker/nginx/templates/
 	cp -r \
 		docker/nginx/templates/snippets/location-dashboard.conf.template \
 		docker/nginx/templates/snippets/location-simdb_proxy.conf.template \
 		docker/nginx/templates/snippets/runtime-config-template.js \
 		docker/nginx/templates/snippets/server-http.conf.template \
 		docker/nginx/templates/snippets/server-https.conf.template \
-		$(DESTDIR)/$(package_optdir)/docker/templates/snippets
+		$(DESTDIR)/$(package_optdir)/docker/nginx/templates/snippets
 	cp -r \
 		scripts/simdb-dashboard.env.example \
 		$(DESTDIR)/$(package_etcdir)/simdb-dashboard.env.example
+	cd $(DESTDIR)/$(package_etcdir) && \
+		[ ! -f simdb-dashboard.env ] && \
+		cp simdb-dashboard.env.example simdb-dashboard.env || \
+		true
 	cp -r \
 		scripts/simdb-dashboard.service \
 		$(DESTDIR)/$(systemd_unitdir)/simdb-dashboard.service
