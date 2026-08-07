@@ -2,18 +2,18 @@ SHELL := /bin/sh
 
 VERSION ?= $(shell git describe --tags --always 2>/dev/null || echo 0.0.0-unknown)
 DASHBOARD_PORT ?= 80
-COMPOSE_PROJECT_NAME ?= simdb-dashboard-$(DASHBOARD_PORT)
+PROJECT_NAME ?= simdb-dashboard
+COMPOSE_PROJECT_NAME ?= $(PROJECT_NAME)-$(DASHBOARD_PORT)
 
 ifeq ($(USE_HTTPS),1)
 DASHBOARD_HTTPS_PORT ?= 443
 export DASHBOARD_HTTPS_PORT
-COMPOSE_FILE ?= docker-compose.yml:docker-compose-https.yml
-SERVICE_IMAGE := simdb-dashboard:service-https
+COMPOSE_FILE ?= docker-compose.yml:docker-compose.https.yml
 else
 COMPOSE_FILE ?= docker-compose.yml
-SERVICE_IMAGE := simdb-dashboard:service
 endif
 
+# Used by docker-compose
 export DASHBOARD_PORT
 export COMPOSE_PROJECT_NAME
 
@@ -21,15 +21,20 @@ DOCKER_CMD ?= docker
 DOCKER_BUILD ?= $(DOCKER_CMD) build --build-arg APP_VERSION="$(VERSION)"
 DOCKER_COMPOSE ?= APP_VERSION="$(VERSION)" COMPOSE_FILE="$(COMPOSE_FILE)" $(DOCKER_CMD) compose
 
-BUILD_IMAGE := simdb-dashboard:build
+# systemd-install destinations
+package_optdir ?= /opt/$(PROJECT_NAME)
+package_etcdir ?= /etc/$(PROJECT_NAME)
+systemd_unitdir ?= /etc/systemd/system
+
 DEV_IMAGE := simdb-dashboard:dev
+BUILD_IMAGE := simdb-dashboard:build
+SERVICE_IMAGE := simdb-dashboard:service
 
 .DEFAULT_GOAL := service
 
 .PHONY: \
 	build \
 	builder \
-	clean-images \
 	deploy \
 	dev \
 	dist \
@@ -43,8 +48,11 @@ DEV_IMAGE := simdb-dashboard:dev
 	service \
 	shell \
 	systemd-disable \
+	systemd-daemon-reload \
 	systemd-enable \
+	systemd-installdirs \
 	systemd-install \
+	systemd-status \
 	systemd-start \
 	systemd-stop \
 	systemd-uninstall \
@@ -69,7 +77,7 @@ help:
 	@echo ""
 	@echo "HTTPS toggle (set USE_HTTPS=1):"
 	@echo "  USE_HTTPS=1 make service   Build HTTPS service stage and tag simdb-dashboard:service-https"
-	@echo "  USE_HTTPS=1 make up        Start dashboard with docker-compose-https.yml override"
+	@echo "  USE_HTTPS=1 make up        Start dashboard with docker-compose.https.yml override"
 	@echo "  USE_HTTPS=1 make down      Stop dashboard started with the HTTPS compose override"
 	@echo "  USE_HTTPS=1 make logs-f    Follow logs of the HTTPS compose service"
 	@echo "  USE_HTTPS=1 make shell     Enter shell in the started HTTPS compose service"
@@ -94,13 +102,14 @@ help:
 	@echo "  make deploy          Deploy project (placeholder)"
 	@echo ""
 	@echo "Systemd integration (run with sudo):"
-	@echo "  sudo make systemd-install    Copy files to /opt/simdb-dashboard and /etc/simdb-dashboard"
-	@echo "  sudo make systemd-enable     systemctl daemon-reload, enable, and start the service"
-	@echo "  sudo make systemd-start      systemctl start  simdb-dashboard"
-	@echo "  sudo make systemd-stop       systemctl stop   simdb-dashboard"
-	@echo "  sudo make systemd-disable    systemctl stop && systemctl disable simdb-dashboard"
-	@echo "  sudo make systemd-uninstall  Disable, remove unit file, delete /opt/ and /etc/ files"
-	@echo "  USE_HTTPS=1 sudo make systemd-install  Include HTTPS compose override and SSL setup"
+	@echo "  sudo make systemd-install           Copy files to $(package_optdir) and $(package_etcdir)"
+	@echo "  sudo make systemd-enable            systemctl daemon-reload && systemctl enable simdb-dashboard"
+	@echo "  sudo make systemd-start             systemctl start  simdb-dashboard"
+	@echo "  sudo make systemd-status            systemctl status simdb-dashboard"
+	@echo "  sudo make systemd-stop              systemctl stop   simdb-dashboard"
+	@echo "  sudo make systemd-disable           systemctl stop && systemctl disable simdb-dashboard"
+	@echo "  sudo make systemd-uninstall         Remove files installed by systemd-install"
+	@echo "  USE_HTTPS=1 sudo make systemd-install          Include HTTPS compose override and SSL setup"
 	@echo ""
 	@echo "Environment variable examples:"
 	@echo "  Start simdb-dashboard at alternative DASHBOARD_PORT, with simdb server at API_PORT:"
@@ -187,53 +196,62 @@ dashboard/package-lock.json: dashboard/package.json
 
 distclean:
 	APP_VERSION="$(VERSION)" COMPOSE_FILE="docker-compose.yml" $(DOCKER_CMD) compose down --volumes --remove-orphans --rmi local
-	APP_VERSION="$(VERSION)" COMPOSE_FILE="docker-compose.yml:docker-compose-https.yml" $(DOCKER_CMD) compose down --volumes --remove-orphans --rmi local
+	APP_VERSION="$(VERSION)" COMPOSE_FILE="docker-compose.yml:docker-compose.https.yml" $(DOCKER_CMD) compose down --volumes --remove-orphans --rmi local
 	$(DOCKER_CMD) rmi -f $(BUILD_IMAGE) simdb-dashboard:service simdb-dashboard:service-https >/dev/null 2>&1 || true
 	$(DOCKER_CMD) volume rm -f simdb_dashboard_node_modules >/dev/null 2>&1 || true
 	rm -rf dist
 
 # Systemd integration (run with sudo)
-systemd-install:
-	mkdir -p /opt/simdb-dashboard
-	cp docker-compose.yml /opt/simdb-dashboard/
-	cp docker-compose.systemd.yml /opt/simdb-dashboard/
-	cp -r docker/nginx/templates /opt/simdb-dashboard/
-	mkdir -p /etc/simdb-dashboard
-	[ -f /etc/simdb-dashboard/simdb-dashboard.env ] || \
-		{ echo '# Created by make systemd-install' > /etc/simdb-dashboard/simdb-dashboard.env; \
-		  echo 'API_HOST=host.docker.internal' >> /etc/simdb-dashboard/simdb-dashboard.env; \
-		  echo 'SIMDB_SERVER_URL=/scenarios/api' >> /etc/simdb-dashboard/simdb-dashboard.env; }
-ifeq ($(USE_HTTPS),1)
-	cp docker-compose-https.yml /opt/simdb-dashboard/
-	mkdir -p /etc/ssl/simdb-dashboard
-	cp docker/nginx/ssl/cert.* /etc/ssl/simdb-dashboard/ 2>/dev/null || \
-		echo "  *** No certificate files found at docker/nginx/ssl/ — generate them with:"; \
-		echo "  ***   scripts/generate-self-signed-certs.sh"; \
-		echo "  ***   cp docker/nginx/ssl/cert.* /etc/ssl/simdb-dashboard/"
-	mkdir -p /opt/simdb-dashboard/docker/nginx
-	ln -sf /etc/ssl/simdb-dashboard /opt/simdb-dashboard/docker/nginx/ssl
-endif
+systemd-installdirs:
+	mkdir -p \
+		$(DESTDIR)/$(package_etcdir) \
+		$(DESTDIR)/$(package_optdir) \
+		$(DESTDIR)/$(package_optdir)/docker/templates \
+		$(DESTDIR)/$(package_optdir)/docker/templates/snippets \
+		$(DESTDIR)/$(systemd_unitdir)
 
-systemd-enable:
+systemd-install: systemd-installdirs
+	cp -r \
+		docker-compose.https.yml \
+		docker-compose.systemd.yml \
+		docker-compose.yml \
+		$(DESTDIR)/$(package_optdir)
+	ls docker/nginx/ssl/* 2>/dev/null && \
+		cp -r \
+		docker/nginx/ssl/* \
+		$(DESTDIR)/$(package_optdir)/docker/nginx/ssl/ || \
+		echo "WARNING: Could not install missing cert files, see docker/nginx/ssl/*"
+	cp -r \
+		docker/nginx/templates/default.conf.template \
+		$(DESTDIR)/$(package_optdir)/docker/templates/
+	cp -r \
+		docker/nginx/templates/snippets/location-dashboard.conf.template \
+		docker/nginx/templates/snippets/location-simdb_proxy.conf.template \
+		docker/nginx/templates/snippets/runtime-config-template.js \
+		docker/nginx/templates/snippets/server-http.conf.template \
+		docker/nginx/templates/snippets/server-https.conf.template \
+		$(DESTDIR)/$(package_optdir)/docker/templates/snippets
+	cp -r \
+		scripts/simdb-dashboard.env.example \
+		$(DESTDIR)/$(package_etcdir)/simdb-dashboard.env.example
+	cp -r \
+		scripts/simdb-dashboard.service \
+		$(DESTDIR)/$(systemd_unitdir)/simdb-dashboard.service
+
+systemd-uninstall:
+	-rm -f --interactive $(DESTDIR)/$(systemd_unitdir)/simdb-dashboard.service
+	-rm -rf --interactive $(DESTDIR)/$(package_etcdir)
+	-rm -rf --interactive $(DESTDIR)/$(package_optdir)
+
+systemd-daemon-reload:
 	systemctl daemon-reload
-	systemctl enable simdb-dashboard
-	systemctl start simdb-dashboard
 
-systemd-start:
-	systemctl start simdb-dashboard
-
-systemd-stop:
-	systemctl stop simdb-dashboard
+systemd-enable: systemd-daemon-reload
 
 systemd-disable: systemd-stop
-	systemctl disable simdb-dashboard
 
-systemd-uninstall: systemd-disable
-	rm -f /etc/systemd/system/simdb-dashboard.service
-	systemctl daemon-reload
-	rm -rf /opt/simdb-dashboard
-	rm -rf /etc/simdb-dashboard
-	[ ! -e /etc/ssl/simdb-dashboard ] || rm -rf /etc/ssl/simdb-dashboard
+systemd-start systemd-status systemd-stop systemd-enable systemd-disable:
+	systemctl $(patsubst systemd-%,%,$@) simdb-dashboard
 
 # Deployment
 deploy:
