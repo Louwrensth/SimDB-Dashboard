@@ -50,7 +50,7 @@ make down
 
 ## HTTPS installation workflow (Docker image + Compose override)
 
-The repository also includes an HTTPS-specific Docker stage and a Compose override in `docker-compose-https.yml`.
+The repository also includes an HTTPS-specific Docker stage and a Compose override in `docker-compose.https.yml`.
 
 1. Provide TLS certificate files at `docker/nginx/ssl/cert.crt` and `docker/nginx/ssl/cert.key`.
 
@@ -79,7 +79,7 @@ USE_HTTPS=1 make down
 
 ## Adjusting the installation
 
-Did something change in the `docker-compose.yml`, `docker-compose-https.yml`, or `docker/*` files? Stop the service, and restart service (rebuild not necessary):
+Did something change in the `docker-compose.yml`, `docker-compose.https.yml`, or `docker/*` files? Stop the service, and restart service (rebuild not necessary):
 
 ```sh
 make down up
@@ -96,7 +96,7 @@ Notes:
 - Requests under `/scenarios/api/` are proxied by nginx to a simdb server expected at `API_HOST:API_PORT` (defaults to `host.docker.internal:5000`).
 - You can start multiple dashboards if you change the host port with `DASHBOARD_PORT`.
 - The HTTPS compose override also publishes `DASHBOARD_HTTPS_PORT` (default `443`) and switches `SERVER_CONF` to `server-https.conf`.
-- `docker-compose-https.yml` reuses the base `docker-compose.yml`; environment variables from the base file are inherited, and override entries only add new variables or replace matching keys such as `SERVER_CONF`.
+- `docker-compose.https.yml` reuses the base `docker-compose.yml`; environment variables from the base file are inherited, and override entries only add new variables or replace matching keys such as `SERVER_CONF`.
 - Set `USE_HTTPS=1` to switch shared Make targets such as `up`, `down`, `logs-f`, and `shell` to the HTTPS compose chain.
 - The `USE_HTTPS=1` flag expects **TLS certificate files** at `docker/nginx/ssl/cert.crt` and `docker/nginx/ssl/cert.key`. If you do not have certificate files yet, a self-signed key pair can be generated with the provided script at `scripts/generate-self-signed-certs.sh` (see the [HTTPS installation workflow](#https-installation-workflow-docker-image--compose-override) section for details).
 - Use `PUBLIC_SIMDB_URL` or edit `docker\nginx\templates\snippets\runtime-config-template.js` for adjusting the simdb server:

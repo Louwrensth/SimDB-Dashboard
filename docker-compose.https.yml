@@ -1,8 +1,15 @@
 # HTTPS override for docker-compose.yml.
-# Reuses the base dashboard service definition and only adds or overrides SSL-specific settings.
+#
+# Only adds or overrides SSL-specific settings.
+#
+# Enable this override by including it in COMPOSE_FILE,
+# after the original, e.g.
+#   COMPOSE_FILE="docker-compose.yml:docker-compose.https.yml"
+#   COMPOSE_FILE="docker-compose.yml:docker-compose.https.yml:docker-compose.systemd.yml"
+#
 services:
   dashboard:
-    image: simdb-dashboard:service-https
+    container_name: ${DASHBOARD_CONTAINER_NAME:-simdb-dashboard-https}
     environment:
       # Use server-https.conf when SSL certificates (cert.crt and cert.key) are provided.
       SERVER_CONF: ${SERVER_CONF:-server-https.conf}

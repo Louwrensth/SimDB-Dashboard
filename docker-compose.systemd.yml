@@ -1,14 +1,15 @@
-# systemd deployment override — use the GHCR-published image instead of a local build.
+# Systemd override for docker-compose.yml.
 #
-# Include this file last in COMPOSE_FILE so its image: value wins over
-# both docker-compose.yml (simdb-dashboard:service) and
-# docker-compose-https.yml (simdb-dashboard:service-https).
-#
-#   COMPOSE_FILE="docker-compose.yml:docker-compose.systemd.yml"
-#   COMPOSE_FILE="docker-compose.yml:docker-compose-https.yml:docker-compose.systemd.yml"
+# Uses the GHCR-published image instead of a local build.
 #
 # Set SIMDB_DASHBOARD_TAG in the environment file to pin a specific
-# version.  The default is the latest tag at the time of writing.
+# version. The default is the latest tag at the time of writing.
+#
+# Enable this override by including it in COMPOSE_FILE,
+# after the original, e.g.
+#   COMPOSE_FILE="docker-compose.yml:docker-compose.https.yml"
+#   COMPOSE_FILE="docker-compose.yml:docker-compose.https.yml:docker-compose.systemd.yml"
+#
 services:
   dashboard:
     image: ghcr.io/iterorganization/simdb-dashboard:${SIMDB_DASHBOARD_TAG:-service-0.9.0-68-g8819049}

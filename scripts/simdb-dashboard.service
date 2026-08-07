@@ -32,7 +32,7 @@
 #   Follow the HTTP steps above, but additionally copy the HTTPS override
 #   and update COMPOSE_FILE to include it before the systemd override:
 #
-#      sudo cp docker-compose-https.yml /opt/simdb-dashboard/
+#      sudo cp docker-compose.https.yml /opt/simdb-dashboard/
 #
 #      sudo mkdir -p /etc/ssl/simdb-dashboard
 #      sudo cp docker/nginx/ssl/cert.* /etc/ssl/simdb-dashboard/
@@ -41,7 +41,7 @@
 #
 #      # Update the env file
 #      sudo tee /etc/simdb-dashboard/simdb-dashboard.env <<EOF
-#      COMPOSE_FILE=docker-compose.yml:docker-compose-https.yml:docker-compose.systemd.yml
+#      COMPOSE_FILE=docker-compose.yml:docker-compose.https.yml:docker-compose.systemd.yml
 #      DASHBOARD_PORT=80
 #      API_PORT=5000
 #      API_HOST=host.docker.internal
