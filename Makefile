@@ -211,34 +211,34 @@ systemd-installdirs:
 		$(DESTDIR)/$(systemd_unitdir)
 
 systemd-install: systemd-installdirs
-	cp -r \
+	install -m 644 \
 		docker-compose.https.yml \
 		docker-compose.systemd.yml \
 		docker-compose.yml \
 		$(DESTDIR)/$(package_optdir)
 	ls docker/nginx/ssl/* 2>/dev/null && \
-		cp -r \
+		install -m 600 \
 		docker/nginx/ssl/* \
 		$(DESTDIR)/$(package_optdir)/docker/nginx/ssl/ || \
 		echo "WARNING: Could not install missing cert files, see docker/nginx/ssl/*"
-	cp -r \
+	install -m 644 \
 		docker/nginx/templates/default.conf.template \
 		$(DESTDIR)/$(package_optdir)/docker/nginx/templates/
-	cp -r \
+	install -m 644 \
 		docker/nginx/templates/snippets/location-dashboard.conf.template \
 		docker/nginx/templates/snippets/location-simdb_proxy.conf.template \
 		docker/nginx/templates/snippets/runtime-config-template.js \
 		docker/nginx/templates/snippets/server-http.conf.template \
 		docker/nginx/templates/snippets/server-https.conf.template \
 		$(DESTDIR)/$(package_optdir)/docker/nginx/templates/snippets
-	cp -r \
+	install -m 644 \
 		scripts/simdb-dashboard.env.example \
 		$(DESTDIR)/$(package_etcdir)/simdb-dashboard.env.example
 	cd $(DESTDIR)/$(package_etcdir) && \
 		[ ! -f simdb-dashboard.env ] && \
-		cp simdb-dashboard.env.example simdb-dashboard.env || \
+		install -m 644 simdb-dashboard.env.example simdb-dashboard.env || \
 		true
-	cp -r \
+	install -m 644 \
 		scripts/simdb-dashboard.service \
 		$(DESTDIR)/$(systemd_unitdir)/simdb-dashboard.service
 
