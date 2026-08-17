@@ -1,6 +1,15 @@
 # dashboard app expects request url path to start with /dashboard/
 location = /            { return 302 /dashboard/; }
 location = /dashboard   { return 302 /dashboard/; }
+
+location /dashboard/assets/ {
+    # Assets have hashes in filenames (index-<hash>.js): OK to cache forever
+    expires 1y;
+    add_header Cache-Control "public, immutable";
+    # Vite pre-compresses assets (vite-plugin-compression). Serve those.
+    gzip_static on;
+}
+
 location /dashboard/ {
     try_files $uri $uri/ /dashboard/index.html;
 }
