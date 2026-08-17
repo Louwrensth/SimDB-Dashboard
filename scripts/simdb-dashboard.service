@@ -69,7 +69,7 @@ WorkingDirectory=/opt/simdb-dashboard
 Environment="COMPOSE_FILE=docker-compose.yml:docker-compose.systemd.yml"
 #Environment="DASHBOARD_CONTAINER_NAME=simdb-dashboard-systemd"
 #Environment="SIMDB_DASHBOARD_TAG=latest"
-#Environment="SIMDB_DASHBOARD_IMAGE=ghcr.io/iterorganization/simdb-dashboard:${SIMDB_DASHBOARD_TAG:-latest}"
+#Environment="SIMDB_DASHBOARD_IMAGE=ghcr.io/iterorganization/simdb-dashboard"
 #Environment="DASHBOARD_PORT=80"
 #Environment="DASHBOARD_HTTPS_PORT=443"
 #Environment="API_HOST=host.docker.internal"

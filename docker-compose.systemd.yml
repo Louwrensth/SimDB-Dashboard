@@ -12,7 +12,7 @@
 #
 services:
   dashboard:
-    image: ${SIMDB_DASHBOARD_IMAGE:-ghcr.io/iterorganization/simdb-dashboard:${SIMDB_DASHBOARD_TAG:-latest}}
+    image: ${SIMDB_DASHBOARD_IMAGE:-ghcr.io/iterorganization/simdb-dashboard}:${SIMDB_DASHBOARD_TAG:-latest}
     logging:
       driver: journald
       options:
