@@ -50,7 +50,7 @@
 #   scripts/generate-self-signed-certs.sh — helper for test certificates
 
 [Unit]
-Description=SimDB Dashboard — containerized Vue.js frontend and nginx reverse proxy
+Description=SimDB Dashboard — Web frontend for the SimDB simulation management tool
 Documentation=https://github.com/iterorganization/SimDB-Dashboard
 Requires=docker.service
 After=docker.service network-online.target
