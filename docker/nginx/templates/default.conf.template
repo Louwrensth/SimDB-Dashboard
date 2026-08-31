@@ -2,10 +2,10 @@
 # are envsubst-processed into /etc/nginx/conf.d at container startup.
 # See: https://github.com/docker-library/docs/tree/master/nginx
 
-# Log to container stdout/stderr so logs are visible via `docker compose logs`.
-# Change `info` to `debug` for maximum verbosity (requires nginx debug build).
-error_log /dev/stderr info;
-access_log /dev/stdout;
+# FYI: the official nginx image already has /var/log/nginx/access.log symlinked to /dev/stdout,
+# and the default /etc/nginx/nginx.conf reads:
+#
+#    access_log  /var/log/nginx/access.log  main;
 
 # Hostnames inside upstream blocks are resolved at config-load time using the
 # system resolver, which does read /etc/hosts.
