@@ -4,8 +4,9 @@
 dashboard/dist
 dashboard/node_modules
 dashboard/.vite
-docker/nginx/ssl/*.crt
-docker/nginx/ssl/*.key
+# Generated TLS assets (*.pem, *.key, san.cnf, ...).
+docker/nginx/tls/*
+!docker/nginx/tls/.gitkeep
 docs
 .env
 .env.*

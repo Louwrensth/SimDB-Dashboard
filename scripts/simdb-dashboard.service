@@ -47,7 +47,7 @@
 # ## See also
 #
 #   docs/installation.md                  — full build and deployment guide
-#   scripts/generate-self-signed-certs.sh — helper for test certificates
+#   scripts/certs/Makefile                — generates test TLS certificates
 
 [Unit]
 Description=SimDB Dashboard — Web frontend for the SimDB simulation management tool

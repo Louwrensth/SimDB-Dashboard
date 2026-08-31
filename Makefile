@@ -35,6 +35,7 @@ SERVICE_IMAGE := simdb-dashboard:service
 .PHONY: \
 	build \
 	builder \
+	certs \
 	deploy \
 	dev \
 	dist \
@@ -76,6 +77,7 @@ help:
 	@echo "  make shell           Enter shell in the started simdb-dashboard service"
 	@echo ""
 	@echo "HTTPS toggle (set USE_HTTPS=1):"
+	@echo "  make certs                 Generate + install CA-signed TLS certs into docker/nginx/tls"
 	@echo "  USE_HTTPS=1 make service   Build HTTPS service stage and tag simdb-dashboard:service-https"
 	@echo "  USE_HTTPS=1 make up        Start dashboard with docker-compose.https.yml override"
 	@echo "  USE_HTTPS=1 make down      Stop dashboard started with the HTTPS compose override"
@@ -109,13 +111,17 @@ help:
 	@echo "  sudo make systemd-stop              systemctl stop   simdb-dashboard"
 	@echo "  sudo make systemd-disable           systemctl stop && systemctl disable simdb-dashboard"
 	@echo "  sudo make systemd-uninstall         Remove files installed by systemd-install"
-	@echo "  USE_HTTPS=1 sudo make systemd-install          Include HTTPS compose override and SSL setup"
+	@echo "  USE_HTTPS=1 sudo make systemd-install          Include HTTPS compose override and TLS setup"
 	@echo ""
 	@echo "Environment variable examples:"
 	@echo "  Start simdb-dashboard at alternative DASHBOARD_PORT, with simdb server at API_PORT:"
 	@echo "    DASHBOARD_PORT=8080 API_PORT=5100 make up"
 	@echo "  Start HTTPS dashboard with alternative HTTP/HTTPS host ports:"
 	@echo "    DASHBOARD_PORT=8080 DASHBOARD_HTTPS_PORT=8443 USE_HTTPS=1 make up"
+
+# Generate and install CA-signed TLS certificates (scripts/certs/Makefile).
+certs:
+	$(MAKE) -C scripts/certs install
 
 # Compose targets
 up:
@@ -183,6 +189,10 @@ simdb-dashboard-service.tar: service
 	@echo "To load and run the image:"
 	@echo "  docker load -i simdb-dashboard-service.tar"
 	@echo "  docker run --rm -p 8080:80 --add-host host.docker.internal:host-gateway simdb-dashboard:service"
+	@echo "To load and run the local image via the systemd service:"
+	@echo "  sudo make systemd-install systemd-enable  # if not already done"
+	@echo "  docker load -i simdb-dashboard-service.tar  # Loaded image: simdb-dashboard:service"
+	@echo "  sudo vim /etc/simdb-dashboard/simdb-dashboard.env  # update SIMDB_DASHBOARD_IMAGE=simdb-dashboard SIMDB_DASHBOARD_TAG=service"
 
 update-base:
 	$(DOCKER_BUILD) --no-cache --pull --target service -t $(SERVICE_IMAGE) .
@@ -206,7 +216,7 @@ systemd-installdirs:
 	mkdir -p \
 		$(DESTDIR)/$(package_etcdir) \
 		$(DESTDIR)/$(package_optdir) \
-		$(DESTDIR)/$(package_optdir)/docker/nginx/ssl/ \
+		$(DESTDIR)/$(package_optdir)/docker/nginx/tls/ \
 		$(DESTDIR)/$(package_optdir)/docker/nginx/templates/snippets \
 		$(DESTDIR)/$(systemd_unitdir)
 
@@ -216,11 +226,16 @@ systemd-install: systemd-installdirs
 		docker-compose.systemd.yml \
 		docker-compose.yml \
 		$(DESTDIR)/$(package_optdir)
-	ls docker/nginx/ssl/* 2>/dev/null && \
+	ls docker/nginx/tls/*.key 2>/dev/null && \
 		install -m 600 \
-		docker/nginx/ssl/* \
-		$(DESTDIR)/$(package_optdir)/docker/nginx/ssl/ || \
-		echo "WARNING: Could not install missing cert files, see docker/nginx/ssl/*"
+		docker/nginx/tls/*.key \
+		$(DESTDIR)/$(package_optdir)/docker/nginx/tls/ || \
+		echo "WARNING: Could not install missing cert files, see docker/nginx/tls/*"
+	ls docker/nginx/tls/*.pem 2>/dev/null && \
+		install -m 644 \
+		docker/nginx/tls/*.pem \
+		$(DESTDIR)/$(package_optdir)/docker/nginx/tls/ || \
+		echo "WARNING: Could not install missing cert files, see docker/nginx/tls/*"
 	install -m 644 \
 		docker/nginx/templates/default.conf.template \
 		$(DESTDIR)/$(package_optdir)/docker/nginx/templates/

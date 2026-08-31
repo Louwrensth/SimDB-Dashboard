@@ -1,6 +1,6 @@
 # HTTPS override for docker-compose.yml.
 #
-# Only adds or overrides SSL-specific settings.
+# Only adds or overrides TLS-specific settings.
 #
 # Enable this override by including it in COMPOSE_FILE,
 # after the original, e.g.
@@ -10,11 +10,11 @@
 services:
   dashboard:
     environment:
-      # Use server-https.conf when SSL certificates (cert.crt and cert.key) are provided.
+      # Use server-https.conf when TLS certificates (server.pem and server.key) are provided.
       SERVER_CONF: ${SERVER_CONF:-server-https.conf}
     ports:
       - "${DASHBOARD_PORT:-80}:80"
       - "${DASHBOARD_HTTPS_PORT:-443}:443"
     volumes:
       - ./docker/nginx/templates:/etc/nginx/templates
-      - ./docker/nginx/ssl:/etc/nginx/ssl:ro
+      - ./docker/nginx/tls:/etc/nginx/tls:ro

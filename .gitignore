@@ -1,6 +1,13 @@
 .idea/
 dashboard/dist/
 dashboard/node_modules/
-docker/nginx/ssl/*.crt
-docker/nginx/ssl/*.key
+# Generated TLS assets (*.pem, *.key, san.cnf, ...).
+docker/nginx/tls/*
+!docker/nginx/tls/.gitkeep
+# Generated CA / server certificate build dir (scripts/certs/Makefile).
+scripts/certs/*.key
+scripts/certs/*.pem
+scripts/certs/*.csr
+scripts/certs/*.srl
+scripts/certs/san.cnf
 dist/

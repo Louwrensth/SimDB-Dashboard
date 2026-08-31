@@ -33,7 +33,7 @@ LABEL org.opencontainers.image.title="SimDB Dashboard" \
       io.simdb.component="dashboard"
 COPY docker/nginx/templates/ /etc/nginx/templates/
 COPY docker/nginx/entrypoint/ /docker-entrypoint.d/
-COPY docker/nginx/ssl/ /etc/nginx/ssl/
+COPY docker/nginx/tls/ /etc/nginx/tls/
 RUN chmod +x /docker-entrypoint.d/*.sh
 # App expects itself at urlpath /dashboard
 COPY --from=build /app/dist /usr/share/nginx/html/dashboard
