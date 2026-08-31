@@ -95,7 +95,7 @@ make down service up
 
 Notes:
 
-- Requests under `/scenarios/api/` are proxied by nginx to a simdb server expected at `API_HOST:API_PORT` (defaults to `host.docker.internal:5000`).
+- Requests under `/scenarios/api/` are proxied by nginx to a simdb server expected at `API_HOST:API_PORT` (defaults to `host.docker.internal:5000`). nginx sends `X-Forwarded-Prefix: /scenarios/api`; SimDB should trust respect header (`ProxyFix(..., x_prefix=1)`) so absolute URLs it returns retain the public prefix.
 - You can start multiple dashboards if you change the host port with `DASHBOARD_PORT`.
 - The HTTPS compose override also publishes `DASHBOARD_HTTPS_PORT` (default `443`) and switches `SERVER_CONF` to `server-https.conf`.
 - `docker-compose.https.yml` reuses the base `docker-compose.yml`; environment variables from the base file are inherited, and override entries only add new variables or replace matching keys such as `SERVER_CONF`.
