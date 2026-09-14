@@ -227,16 +227,14 @@ systemd-install: systemd-installdirs
 		docker-compose.systemd.yml \
 		docker-compose.yml \
 		$(DESTDIR)/$(package_optdir)
-	ls docker/nginx/tls/*.key 2>/dev/null && \
-		install -m 600 \
-		docker/nginx/tls/*.key \
-		$(DESTDIR)/$(package_optdir)/docker/nginx/tls/ || \
-		echo "WARNING: Could not install missing cert files, see docker/nginx/tls/*"
-	ls docker/nginx/tls/*.pem 2>/dev/null && \
-		install -m 644 \
-		docker/nginx/tls/*.pem \
-		$(DESTDIR)/$(package_optdir)/docker/nginx/tls/ || \
-		echo "WARNING: Could not install missing cert files, see docker/nginx/tls/*"
+	install -m 600 \
+		docker/nginx/tls/server.key \
+		$(DESTDIR)/$(package_optdir)/docker/nginx/tls/ \
+		|| echo "WARNING: docker/nginx/tls/server.key not found, skipping."
+	install -m 644 \
+		docker/nginx/tls/server.pem \
+		$(DESTDIR)/$(package_optdir)/docker/nginx/tls/ \
+		|| echo "WARNING: docker/nginx/tls/server.pem not found, skipping."
 	install -m 644 \
 		docker/nginx/templates/default.conf.template \
 		$(DESTDIR)/$(package_optdir)/docker/nginx/templates/

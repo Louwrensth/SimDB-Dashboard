@@ -33,7 +33,7 @@ SERVER_PEM  := server.pem
 
 # Side-effect file written by openssl when signing (-CAcreateserial); it is
 # not a declared target. If deleted, it is recreated on the next re-sign
-# (with a reset serial), and `make install` simply skips it when absent.
+# (with a reset serial), keep it private with your rootCA.key.
 TLS_SERIAL  := rootCA.srl
 
 .DEFAULT_GOAL := help
@@ -91,13 +91,13 @@ check: check-$(SERVER_PEM) check-$(ROOTCA_KEY) check-$(SERVER_KEY)
 
 install: all
 	@mkdir -p '$(TLS_DIR)'
-	@install -m 600 '$(ROOTCA_KEY)' '$(SERVER_KEY)' '$(TLS_DIR)/'
-	@install -m 644 '$(ROOTCA_PEM)' '$(SERVER_PEM)' '$(SERVER_CSR)' '$(SAN_CNF)' '$(TLS_DIR)/'
-	@if [ -f '$(TLS_SERIAL)' ]; then install -m 644 '$(TLS_SERIAL)' '$(TLS_DIR)/'; fi
+	@install -m 600 '$(SERVER_KEY)' '$(TLS_DIR)/'
+	@install -m 644 '$(SERVER_PEM)' '$(TLS_DIR)/'
 	@echo "Installed TLS files into $(TLS_DIR):"
-	@echo "  rootCA.pem  - distribute to clients (trust anchor)"
-	@echo "  rootCA.key  - keep secret (only used to sign)"
 	@echo "  server.pem / server.key - used by nginx (server-https.conf)"
+	@echo "Kept out of $(TLS_DIR) on purpose:"
+	@echo "  rootCA.key  - CA signing key, keep secret"
+	@echo "  rootCA.pem  - distribute to clients (trust anchor) via your own channel"
 	@echo "  server.csr / san.cnf / rootCA.srl - introspection / serial"
 
 all: $(ROOTCA_PEM) $(SERVER_PEM)
