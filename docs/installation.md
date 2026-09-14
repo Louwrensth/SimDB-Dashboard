@@ -78,7 +78,7 @@ sudo make systemd-start
 - `COMPOSE_FILE`: default systemd stack is `docker-compose.yml:docker-compose.systemd.yml`.
 - `SIMDB_DASHBOARD_IMAGE`: optional image repository override (default `ghcr.io/iterorganization/simdb-dashboard`).
 - `SIMDB_DASHBOARD_TAG`: optional image tag (default `latest` in `docker-compose.systemd.yml`).
-- `DASHBOARD_CONTAINER_NAME`: optional docker container name override.
+- `SYSTEMD_CONTAINER_NAME`: optional docker container name override (see `docker-compose.systemd.yml`).
 - `DASHBOARD_PORT`: host HTTP port (default `80`).
 - `DASHBOARD_HTTPS_PORT`: host HTTPS port (default `443`).
 - `API_HOST`: SimDB backend host (default `host.docker.internal`).

@@ -12,6 +12,9 @@
 #
 services:
   dashboard:
+    # Systemd deployment should only manage a single container instance, docker requires
+    # container_name to be unique, so use it to ensure a fixed name and no flexible per-port naming.
+    container_name: ${SYSTEMD_CONTAINER_NAME:-simdb-dashboard-systemd}
     image: ${SIMDB_DASHBOARD_IMAGE:-ghcr.io/iterorganization/simdb-dashboard}:${SIMDB_DASHBOARD_TAG:-latest}
     logging:
       driver: journald

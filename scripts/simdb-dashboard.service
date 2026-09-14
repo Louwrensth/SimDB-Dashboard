@@ -20,7 +20,7 @@ WorkingDirectory=/opt/simdb-dashboard
 
 # --- defaults (overridden by env file when set) -----------------------
 Environment="COMPOSE_FILE=docker-compose.yml:docker-compose.systemd.yml"
-#Environment="DASHBOARD_CONTAINER_NAME=simdb-dashboard-systemd"
+#Environment="SYSTEMD_CONTAINER_NAME=simdb-dashboard-systemd"
 #Environment="SIMDB_DASHBOARD_TAG=latest"
 #Environment="SIMDB_DASHBOARD_IMAGE=ghcr.io/iterorganization/simdb-dashboard"
 #Environment="DASHBOARD_PORT=80"
