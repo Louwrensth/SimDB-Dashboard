@@ -36,7 +36,6 @@ SERVICE_IMAGE := simdb-dashboard:service
 	build \
 	builder \
 	certs \
-	deploy \
 	dev \
 	dist \
 	distclean \
@@ -101,7 +100,6 @@ help:
 	@echo "  make update-base     Rebuild service image pulling latest base images"
 	@echo "  make update-deps     Update npm lockfile and audit-fix deps via Docker"
 	@echo "  make distclean       Remove local artifacts and compose runtime state"
-	@echo "  make deploy          Deploy project (placeholder)"
 	@echo ""
 	@echo "Systemd integration (run with sudo; see docs/installation.md):"
 	@echo "  sudo make systemd-install           Copy files to $(package_optdir) and $(package_etcdir)"
@@ -270,8 +268,4 @@ systemd-disable: systemd-stop
 
 systemd-start systemd-status systemd-stop systemd-enable systemd-disable:
 	-systemctl $(patsubst systemd-%,%,$@) simdb-dashboard
-
-# Deployment
-deploy:
-	@echo "TODO define deploy workflow here"
 
