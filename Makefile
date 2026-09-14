@@ -78,8 +78,8 @@ help:
 	@echo ""
 	@echo "HTTPS toggle (set USE_HTTPS=1):"
 	@echo "  make certs                 Generate + install CA-signed TLS certs into docker/nginx/tls"
-	@echo "  USE_HTTPS=1 make service   Build HTTPS service stage and tag simdb-dashboard:service-https"
-	@echo "  USE_HTTPS=1 make up        Start dashboard with docker-compose.https.yml override"
+	@echo "  make service               Same image serves HTTP and HTTPS (no HTTPS-specific build)"
+	@echo "  USE_HTTPS=1 make up        Start with docker-compose.https.yml override (server-https.conf, port 443)"
 	@echo "  USE_HTTPS=1 make down      Stop dashboard started with the HTTPS compose override"
 	@echo "  USE_HTTPS=1 make logs-f    Follow logs of the HTTPS compose service"
 	@echo "  USE_HTTPS=1 make shell     Enter shell in the started HTTPS compose service"
@@ -207,7 +207,7 @@ dashboard/package-lock.json: dashboard/package.json
 distclean:
 	APP_VERSION="$(VERSION)" COMPOSE_FILE="docker-compose.yml" $(DOCKER_CMD) compose down --volumes --remove-orphans --rmi local
 	APP_VERSION="$(VERSION)" COMPOSE_FILE="docker-compose.yml:docker-compose.https.yml" $(DOCKER_CMD) compose down --volumes --remove-orphans --rmi local
-	$(DOCKER_CMD) rmi -f $(BUILD_IMAGE) simdb-dashboard:service simdb-dashboard:service-https >/dev/null 2>&1 || true
+	$(DOCKER_CMD) rmi -f $(BUILD_IMAGE) $(SERVICE_IMAGE) $(DEV_IMAGE) >/dev/null 2>&1 || true
 	$(DOCKER_CMD) volume rm -f simdb_dashboard_node_modules >/dev/null 2>&1 || true
 	rm -rf dist
 
