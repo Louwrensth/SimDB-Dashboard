@@ -271,7 +271,7 @@ systemd-enable: systemd-daemon-reload
 systemd-disable: systemd-stop
 
 systemd-start systemd-status systemd-stop systemd-enable systemd-disable:
-	systemctl $(patsubst systemd-%,%,$@) simdb-dashboard
+	-systemctl $(patsubst systemd-%,%,$@) simdb-dashboard
 
 # Deployment
 deploy:
