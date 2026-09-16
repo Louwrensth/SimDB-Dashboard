@@ -37,14 +37,14 @@ location ~ "^/(?:scenarios/api|scenarios|api|swaggerui).*$" {
     # Tweaks necessary for simdb application
 
     # Maxmimum allowed client request body size. Larger than 1M (default) request
-    # payloads are expected. Set this to at least 2M to avoid HTTP 413 (Request
-    # Entity Too Large) errors.
-    client_max_body_size 2M;
+    # payloads are expected. Set this to 10M to avoid HTTP 413 (Request Entity 
+    # Too Large) errors. See SimDB:files.py about target max (10MB minus headroom)
+    client_max_body_size 10M;
 
     # Maximum size of request payload that can remain in RAM before buffering into
     # temporary files on disk (performance hit). Recommend to set to a value equal
     # to than client_max_body_size if memory permits.
-    client_body_buffer_size 2M;
+    client_body_buffer_size 10M;
 
     # Simdb servers are a group of hosts defined via the 'upstream simdb_backend'
     # directive (see default.conf).
