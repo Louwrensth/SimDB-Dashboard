@@ -12,6 +12,13 @@ on:
   pull_request:
     branches: [ "develop" ]
 
+# Serialize runs per ref, so that two merges in quick succession can't race to
+# move the "develop" image tag backward. Superseded runs are not cancelled, so
+# every merged commit still gets a versioned image.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   build:
     name: Build, verify, and package
