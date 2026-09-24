@@ -151,6 +151,7 @@ jobs:
         username: ${{ steps.repo_owner.outputs.value }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
+    # Run on branch pushes (develop only) and _any_ tag pushes.
     - name: Tag and push service image with version tag
       run: |
         docker tag \

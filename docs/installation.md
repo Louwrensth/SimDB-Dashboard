@@ -77,7 +77,7 @@ sudo make systemd-start
 
 - `COMPOSE_FILE`: default systemd stack is `docker-compose.yml:docker-compose.systemd.yml`.
 - `SIMDB_DASHBOARD_IMAGE`: optional image repository override (default `ghcr.io/iterorganization/simdb-dashboard`).
-- `SIMDB_DASHBOARD_TAG`: optional image tag (default `latest` in `docker-compose.systemd.yml`).
+- `SIMDB_DASHBOARD_TAG`: optional image tag (default `latest` in `docker-compose.systemd.yml`; see [Published image tags](#published-image-tags-ghcr)).
 - `SYSTEMD_CONTAINER_NAME`: optional docker container name override (see `docker-compose.systemd.yml`).
 - `DASHBOARD_PORT`: host HTTP port (default `80`).
 - `DASHBOARD_HTTPS_PORT`: host HTTPS port (default `443`).
@@ -87,6 +87,27 @@ sudo make systemd-start
 
 See `scripts/simdb-dashboard.env.example` and `scripts/simdb-dashboard.service`
 for the same defaults and where they are consumed.
+
+## Published image tags
+
+CI publishes `ghcr.io/iterorganization/simdb-dashboard` docker images on every
+PR merge to `develop` and tagged commits (releases):
+
+| Tag | Pushed on | Mutable |
+| --- | --- | --- |
+| `<version>` | `develop` and tag pushes | no |
+| `develop` | `develop` pushes | yes |
+| `latest` | tag pushes | yes |
+
+`<version>` is `git describe --tags --always` at the pushed commit (e.g. `0.9.0` on a
+tag, `0.9.0-12-gabc1234` otherwise). The versioned image is therefore treated as
+immutable and never reused across events.
+
+Deploy `latest` (the default) or pin a version for reproducibility —
+`SIMDB_DASHBOARD_TAG=0.9.0`. `latest` only exists once a tag has been pushed, and
+tracks whichever tag was pushed last: it equals the newest release only if you
+always tag in increasing version order, but nothing enforces that. `develop` is
+for testing, not production hosts.
 
 ## Local container building and installation workflow (Docker image + Compose)
 
