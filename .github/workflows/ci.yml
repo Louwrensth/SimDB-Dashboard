@@ -151,15 +151,17 @@ jobs:
           ghcr.io/${{ steps.repo_owner.outputs.value }}/simdb-dashboard:${{ needs.build.outputs.version }}
         docker push ghcr.io/${{ steps.repo_owner.outputs.value }}/simdb-dashboard:${{ needs.build.outputs.version }}
 
-    - name: Tag and push service image with "nightly"
+    # Run on branch pushes only, so that older tag pushes won't overwrite newer develop images
+    - name: Tag and push service image with "develop"
       if: ${{ github.ref_type == 'branch' }}
+      # Note that branch pushes other than to "develop" are already filtered out by workflow trigger rules above
       run: |
         docker tag \
           simdb-dashboard:service \
-          ghcr.io/${{ steps.repo_owner.outputs.value }}/simdb-dashboard:nightly
-        docker push ghcr.io/${{ steps.repo_owner.outputs.value }}/simdb-dashboard:nightly
+          ghcr.io/${{ steps.repo_owner.outputs.value }}/simdb-dashboard:develop
+        docker push ghcr.io/${{ steps.repo_owner.outputs.value }}/simdb-dashboard:develop
 
-    # These steps run on tagged commits only
+    # These steps run on tag pushes only
     - name: Tag and push service image with "latest"
       if: ${{ github.ref_type == 'tag' }}
       run: |
